@@ -25,6 +25,21 @@ export default tseslint.config(
       globals: { console: 'readonly', process: 'readonly', URL: 'readonly' },
     },
   },
+  // The standalone documentation site (site/) is vanilla browser JS — not part
+  // of the TypeScript app program, so it gets browser globals here.
+  {
+    files: ['site/**/*.js'],
+    languageOptions: {
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        navigator: 'readonly',
+        IntersectionObserver: 'readonly',
+        setTimeout: 'readonly',
+      },
+    },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {

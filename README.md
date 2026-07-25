@@ -3,6 +3,18 @@
 **An offline-first, no-egress developer toolbox that grows into a governed plugin platform.**
 Your data never leaves your machine.
 
+<!-- prettier-ignore-start -->
+[![CI](https://github.com/nanduajith/nexine/actions/workflows/ci.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
+[![Release](https://github.com/nanduajith/nexine/actions/workflows/release.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/release.yml)
+[![Tests](https://img.shields.io/badge/tests-115%20passing-2ea44f)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
+[![Egress](https://img.shields.io/badge/network%20egress-none-2ea44f)](docs/security-model.md)
+[![Platform](https://img.shields.io/badge/platform-desktop%20%7C%20web-6366f1)](#desktop-app-tauri)
+[![License: MIT](https://img.shields.io/badge/license-MIT-8b5cf6)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-site-8b5cf6)](https://nanduajith.github.io/nexine/)
+<!-- prettier-ignore-end -->
+
+📖 **Full documentation & live walkthrough:** **[nanduajith.github.io/nexine](https://nanduajith.github.io/nexine/)**
+
 Nexine is a cross-platform (desktop + self-hostable web) collection of everyday developer
 utilities — JWT, Base64, URL, hashing, JSON, and more — built so a security-conscious enterprise
 can offer a sanctioned alternative to pasting production secrets into random online tools. Under
@@ -29,6 +41,22 @@ even then the host is never a proxy, so the app-wide no-egress guarantee can't l
 
 See [`docs/security-model.md`](docs/security-model.md) for exactly how this is enforced and its
 honest non-goals.
+
+---
+
+## Screenshots
+
+|                                                                                                                                            |                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| ![A tool running in its sandbox](site/assets/screenshots/01-base64-dark.png)                                                               | ![The ⌘K command palette](site/assets/screenshots/02-command-palette.png)                |
+| **Every tool runs in an opaque-origin sandbox** — note the `Sandboxed plugin` / `No network egress` badges and the per-plugin consent bar. | **⌘K command palette** — fuzzy-find and jump to any tool.                                |
+| ![JWT decoder](site/assets/screenshots/03-jwt-dark.png)                                                                                    | ![Settings — plugins, trust, policy](site/assets/screenshots/04-settings.png)            |
+| **JWT decoder** — decoded entirely locally; sensitive input is never persisted.                                                            | **Settings** — side-load signed plugins, pin publishers, set policy, read the audit log. |
+
+<p align="center">
+  <img src="site/assets/screenshots/05-json-light.png" alt="Light theme" width="720">
+  <br><em>First-class light theme.</em>
+</p>
 
 ---
 
