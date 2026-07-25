@@ -83,4 +83,63 @@ describe('resolvePermissions', () => {
     const res = resolvePermissions(m, policy);
     expect(res.granted).toEqual([]);
   });
+
+  const networked = () =>
+    manifest({
+      permissions: [{ id: 'network', hosts: ['https://api.example.com'] }, { id: 'storage' }],
+      dataFlows: [{ destination: 'api.example.com', description: 'x' }],
+    });
+
+  it('default-deny egress: denies network when nothing is allow-listed', () => {
+    // Enterprise posture — a plugin keeps every other capability but reaches no
+    // network host unless an admin allow-lists one.
+    const policy: PluginPolicy = { mode: 'allow', networkRequiresExplicitAllow: true };
+    const res = resolvePermissions(networked(), policy);
+    expect(res.granted.map((p) => p.id)).toEqual(['storage']);
+    expect(res.decisions.find((d) => d.requested.id === 'network')?.reason).toMatch(/allow-list/);
+  });
+
+  it('default-deny egress: grants a host that the admin allow-lists globally', () => {
+    const policy: PluginPolicy = {
+      mode: 'allow',
+      networkRequiresExplicitAllow: true,
+      allowedHosts: ['https://api.example.com'],
+    };
+    const net = resolvePermissions(networked(), policy).granted.find((p) => p.id === 'network');
+    expect(net).toEqual({ id: 'network', hosts: ['https://api.example.com'] });
+  });
+
+  it('default-deny egress: grants a host to one specific plugin via pluginHosts', () => {
+    const policy: PluginPolicy = {
+      mode: 'allow',
+      networkRequiresExplicitAllow: true,
+      pluginHosts: { 'dev.acme.tool': ['https://api.example.com'] },
+    };
+    // The named plugin gets egress...
+    const granted = resolvePermissions(networked(), policy).granted.find((p) => p.id === 'network');
+    expect(granted).toEqual({ id: 'network', hosts: ['https://api.example.com'] });
+    // ...but another plugin requesting the same host does not.
+    const other = networked();
+    const denied = resolvePermissions({ ...other, id: 'dev.other.tool' }, policy).granted;
+    expect(denied.map((p) => p.id)).toEqual(['storage']);
+  });
+
+  it('open posture: pluginHosts extends a global ceiling for one plugin', () => {
+    const policy: PluginPolicy = {
+      mode: 'allow',
+      allowedHosts: ['https://shared.example.com'],
+      pluginHosts: { 'dev.acme.tool': ['https://api.example.com'] },
+    };
+    const m = manifest({
+      permissions: [
+        { id: 'network', hosts: ['https://api.example.com', 'https://shared.example.com'] },
+      ],
+      dataFlows: [{ destination: 'api', description: 'x' }],
+    });
+    const net = resolvePermissions(m, policy).granted.find((p) => p.id === 'network');
+    expect(net).toEqual({
+      id: 'network',
+      hosts: ['https://api.example.com', 'https://shared.example.com'],
+    });
+  });
 });

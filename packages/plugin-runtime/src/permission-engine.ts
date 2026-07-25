@@ -33,11 +33,31 @@ export interface PluginPolicy {
   /** Capability ceiling: these permission ids are denied to every plugin. */
   readonly deniedPermissions?: readonly PermissionId[];
   /**
-   * Network host ceiling. When set, a plugin's requested network hosts are
+   * Global network host ceiling. When set, a plugin's requested network hosts are
    * intersected with this list; hosts outside it are dropped. When omitted, the
-   * plugin's own declared hosts stand.
+   * behaviour depends on `networkRequiresExplicitAllow` (below).
    */
   readonly allowedHosts?: readonly string[];
+  /**
+   * The egress posture.
+   * - `false`/omitted (DIY default) — **open**: a plugin's declared hosts are
+   *   granted as-is, unless narrowed by `allowedHosts`/`pluginHosts`.
+   * - `true` (enterprise) — **default-deny egress**: a `network` permission is
+   *   granted only for hosts explicitly allow-listed in `allowedHosts` or
+   *   `pluginHosts[id]`. With neither set, all egress is denied.
+   *
+   * This is the switch that lets an org say "no plugin reaches the network unless
+   * I say which hosts" without limiting what plugins can otherwise do. Enforcement
+   * is unchanged: the granted hosts become the plugin iframe's `connect-src`, and
+   * the app document itself always stays `connect-src 'none'`.
+   */
+  readonly networkRequiresExplicitAllow?: boolean;
+  /**
+   * Per-plugin network host grants, keyed by plugin id. These hosts are added to a
+   * specific plugin's ceiling — the way an admin grants one plugin egress to an
+   * exact endpoint (e.g. an internal JWKS URL) that other plugins may not reach.
+   */
+  readonly pluginHosts?: Readonly<Record<string, readonly string[]>>;
 }
 
 /** The permissive default: an individual developer's machine with no org policy. */
@@ -74,19 +94,45 @@ function resolveLoad(pluginId: string, policy: PluginPolicy): { allowed: boolean
   return { allowed: true, reason: 'permitted by policy' };
 }
 
-function resolvePermission(permission: Permission, policy: PluginPolicy): PermissionDecision {
+/**
+ * The set of network hosts a given plugin is permitted to reach under policy, or
+ * `null` for "unbounded" (the plugin's own declared hosts stand). This is the one
+ * place the egress posture is decided.
+ */
+function networkHostCeiling(pluginId: string, policy: PluginPolicy): ReadonlySet<string> | null {
+  const perPlugin = policy.pluginHosts?.[pluginId] ?? [];
+  if (policy.networkRequiresExplicitAllow) {
+    // Default-deny: only explicitly allow-listed hosts pass (empty ⇒ deny all).
+    return new Set([...(policy.allowedHosts ?? []), ...perPlugin]);
+  }
+  // Open posture: unbounded unless a global ceiling is configured, in which case
+  // per-plugin grants extend that plugin's ceiling.
+  if (policy.allowedHosts === undefined) return null;
+  return new Set([...policy.allowedHosts, ...perPlugin]);
+}
+
+function resolvePermission(
+  permission: Permission,
+  policy: PluginPolicy,
+  pluginId: string,
+): PermissionDecision {
   if (policy.deniedPermissions?.includes(permission.id)) {
     return { requested: permission, granted: null, reason: `'${permission.id}' denied by policy` };
   }
 
-  if (isNetworkPermission(permission) && policy.allowedHosts) {
-    const ceiling = new Set(policy.allowedHosts);
+  if (isNetworkPermission(permission)) {
+    const ceiling = networkHostCeiling(pluginId, policy);
+    if (ceiling === null) {
+      return { requested: permission, granted: permission, reason: 'granted' };
+    }
     const hosts = permission.hosts.filter((h) => ceiling.has(h));
     if (hosts.length === 0) {
       return {
         requested: permission,
         granted: null,
-        reason: 'no requested network host is within the policy host ceiling',
+        reason: policy.networkRequiresExplicitAllow
+          ? 'network egress denied: no requested host is on the policy allow-list'
+          : 'no requested network host is within the policy host ceiling',
       };
     }
     return {
@@ -113,7 +159,7 @@ export function resolvePermissions(
   const requested = manifest.permissions ?? [];
   const decisions: PermissionDecision[] = requested.map((permission) =>
     load.allowed
-      ? resolvePermission(permission, policy)
+      ? resolvePermission(permission, policy, manifest.id)
       : { requested: permission, granted: null, reason: 'plugin is not permitted to load' },
   );
 
