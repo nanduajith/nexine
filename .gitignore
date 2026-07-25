@@ -18,10 +18,10 @@ node_modules/.vite/
 # Tauri (Rust) — desktop shell
 src-tauri/target/
 src-tauri/gen/
-src-tauri/icons/*.png
-src-tauri/icons/*.icns
-src-tauri/icons/*.ico
 src-tauri/WixTools/
+# NOTE: src-tauri/icons/* are committed build inputs (tauri.conf.json references
+# icon.ico / icon.icns / the PNGs). `tauri build` consumes them — it does not
+# generate them — so they must be in the repo or the desktop CI build fails.
 
 # Test / coverage
 coverage/
