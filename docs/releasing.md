@@ -1,7 +1,8 @@
 # Releasing
 
-Nexine ships from **one command and one tag**. A version bump is the entire release trigger:
-you bump the version, the tag is pushed, and GitHub Actions builds and publishes every artifact.
+`main` is protected — nobody pushes to it directly. A release is therefore triggered by
+**merging a version-bump pull request into `main`**. Bump the version, open the PR, merge it —
+GitHub Actions builds and publishes every artifact.
 
 ## Cut a release
 
@@ -9,26 +10,30 @@ you bump the version, the tag is pushed, and GitHub Actions builds and publishes
 pnpm bump patch      # or: minor · major · an explicit 1.4.0 · a prerelease 1.4.0-rc.1
 ```
 
-[`scripts/bump-version.mjs`](../scripts/bump-version.mjs) does the whole bump atomically:
+[`scripts/bump-version.mjs`](../scripts/bump-version.mjs):
 
 1. Rewrites the version in all four files that carry it, in lockstep — `package.json`,
    `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and the `nexine` entry in
    `src-tauri/Cargo.lock`.
-2. Commits `chore(release): vX.Y.Z` and creates an annotated `vX.Y.Z` tag.
-3. Pushes the branch **and** the tag. The tag push is what starts the release.
+2. Commits the bump on a new `release/vX.Y.Z` branch, pushes it, and opens a PR into `main`.
 
-Useful flags: `--dry-run` (show the changes, touch nothing) and `--no-push` (commit and tag
-locally, push yourself later). The script refuses to run on a dirty _tracked_ tree or if the
-tag already exists.
+Then **review and merge the PR**. Merging is what starts the release.
 
-## What the workflow does
+Useful flags: `--dry-run` (show the changes, touch nothing), `--no-pr` (push the branch but don't
+open the PR), and `--no-push` (create the branch + commit locally only). The script refuses to run
+on a dirty _tracked_ tree or if the `release/vX.Y.Z` branch already exists.
 
-Pushing a `v*.*.*` tag triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml):
+## What the merge does
+
+Every push to `main` runs [`.github/workflows/release.yml`](../.github/workflows/release.yml), but
+it only releases when **main's current version has no release yet** — so a bump merge ships a
+release while any other merge is a fast no-op (the idempotent `detect` job exits in seconds).
 
 | Job              | Output                                                                                                            |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `gate`           | Asserts the tag version matches all version files, then runs typecheck · lint · test · build · the CSP guard.     |
-| `create-release` | Opens a **draft** GitHub Release with auto-generated notes.                                                       |
+| `detect`         | Runs on every push; releases only if `vX.Y.Z` doesn't already exist. Also asserts the four version files agree.   |
+| `gate`           | typecheck · lint · test · build · the no-egress CSP guard.                                                        |
+| `create-release` | Opens a **draft** GitHub Release and tags the merge commit (`--target $SHA` — no push to `main` needed).          |
 | `desktop`        | Tauri installers for macOS (universal), Windows (`.msi`/`.exe`), and Linux (`.deb`/`.rpm`/`.AppImage`).           |
 | `web-and-cli`    | The static web bundle (`nexine-web-vX.Y.Z.zip`, built output only) and the CLI tarball (`nexine-cli-vX.Y.Z.tgz`). |
 | `docker`         | Pushes `ghcr.io/<owner>/nexine:X.Y.Z` (and `:latest` for stable releases) to the GitHub Container Registry.       |
@@ -44,5 +49,5 @@ build that has lost `connect-src 'none'`.
   (macOS notarization + Windows Authenticode) can be added later without reworking the pipeline.
 - **Prereleases** (a version with a `-` suffix, e.g. `1.4.0-rc.1`) are marked as pre-release and
   do **not** move the Docker `:latest` tag.
-- If the workflow reports a version mismatch, the tag and the version files drifted — always cut
-  releases with `pnpm bump` rather than tagging by hand.
+- Always cut releases with `pnpm bump` rather than hand-editing versions — the `detect` job fails
+  the release if the four version files have drifted.
