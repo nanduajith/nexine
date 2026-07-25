@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "hash",
+  "name": "Hash",
+  "version": "1.0.0",
+  "description": "SHA-1/256/384/512 digests via WebCrypto.",
+  "category": "crypto",
+  "author": "Nexine",
+  "icon": "Hash",
+  "keywords": ["hash", "sha", "sha256", "sha512", "digest", "checksum"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

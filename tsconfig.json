@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "packages/*/src",
+    "tools/*/src",
+    "packages/host/vite.config.ts",
+    "vitest.config.ts",
+    "eslint.config.js"
+  ]
+}

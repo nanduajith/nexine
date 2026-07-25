@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "dev.nexine.cron-explainer",
+  "name": "Cron Explainer",
+  "version": "1.0.0",
+  "description": "Explain a cron expression in plain English and preview its next run times — fully offline.",
+  "category": "time",
+  "author": "Nexine Examples",
+  "icon": "Clock",
+  "keywords": ["cron", "crontab", "schedule", "time"],
+  "permissions": [{ "id": "storage" }, { "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

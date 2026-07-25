@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "url",
+  "name": "URL Encode",
+  "version": "1.0.0",
+  "description": "Percent-encode/decode text and inspect query parameters.",
+  "category": "web",
+  "author": "Nexine",
+  "icon": "Link",
+  "keywords": ["url", "uri", "encode", "decode", "percent", "querystring", "escape"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

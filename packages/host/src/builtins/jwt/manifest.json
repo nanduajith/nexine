@@ -1,0 +1,14 @@
+{
+  "manifestVersion": 1,
+  "id": "jwt",
+  "name": "JWT Decoder",
+  "version": "1.0.0",
+  "description": "Decode and inspect JSON Web Tokens — locally, never verified server-side.",
+  "category": "crypto",
+  "author": "Nexine",
+  "icon": "KeyRound",
+  "sensitive": true,
+  "keywords": ["jwt", "jws", "token", "bearer", "claims", "decode"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "useDefineForClassFields": true,
+
+    /* Strictness — no compromises */
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "allowUnreachableCode": false,
+
+    /* Interop / emit */
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    /* Monorepo path aliases (also mirrored in Vite via vite-tsconfig-paths) */
+    "baseUrl": ".",
+    "paths": {
+      "@nexine/core": ["packages/core/src/index.ts"],
+      "@nexine/core/*": ["packages/core/src/*"],
+      "@nexine/ui": ["packages/ui/src/index.ts"],
+      "@nexine/ui/*": ["packages/ui/src/*"],
+      "@nexine/sdk": ["packages/sdk/src/index.ts"],
+      "@nexine/sdk/guest": ["packages/sdk/src/guest/index.ts"],
+      "@nexine/sdk/*": ["packages/sdk/src/*"],
+      "@nexine/plugin-runtime": ["packages/plugin-runtime/src/index.ts"],
+      "@nexine/plugin-runtime/*": ["packages/plugin-runtime/src/*"],
+      "@nexine/packaging": ["packages/packaging/src/index.ts"],
+      "@nexine/packaging/*": ["packages/packaging/src/*"]
+    }
+  }
+}

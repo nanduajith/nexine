@@ -1,0 +1,12 @@
+{
+  "manifestVersion": 1,
+  "id": "dev.nexine.hello",
+  "name": "Hello Plugin",
+  "version": "1.0.0",
+  "description": "A minimal example plugin, built and signed with the nexine CLI.",
+  "category": "data",
+  "author": "Nexine Examples",
+  "icon": "Puzzle",
+  "permissions": [{ "id": "storage" }],
+  "entry": "plugin.js"
+}

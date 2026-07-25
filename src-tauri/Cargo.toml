@@ -1,0 +1,22 @@
+[package]
+name = "nexine"
+version = "0.0.0"
+description = "Nexine — offline-first developer toolbox"
+authors = ["Nexine"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "nexine_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-global-shortcut = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# OS keychain (Keychain / Credential Manager / Secret Service).
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }

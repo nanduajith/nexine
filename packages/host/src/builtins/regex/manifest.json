@@ -1,0 +1,12 @@
+{
+  "manifestVersion": 1,
+  "id": "regex",
+  "name": "RegEx Tester",
+  "version": "1.0.0",
+  "description": "Test regular expressions against sample text with live matches.",
+  "category": "text",
+  "author": "Nexine",
+  "icon": "Regex",
+  "keywords": ["regex", "regexp", "regular expression", "match", "pattern", "test"],
+  "entry": "plugin.js"
+}

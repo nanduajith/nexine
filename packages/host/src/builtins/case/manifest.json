@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "case",
+  "name": "Case Converter",
+  "version": "1.0.0",
+  "description": "Convert text between camelCase, snake_case, kebab-case, and more.",
+  "category": "text",
+  "author": "Nexine",
+  "icon": "Type",
+  "keywords": ["case", "camel", "snake", "kebab", "pascal", "constant", "convert"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

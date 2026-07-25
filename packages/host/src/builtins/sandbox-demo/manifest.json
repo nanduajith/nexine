@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "dev.nexine.sandbox-demo",
+  "name": "Sandbox Demo",
+  "version": "1.0.0",
+  "description": "An example plugin that self-tests isolation, network denial, and host RPC.",
+  "category": "data",
+  "author": "Nexine",
+  "icon": "Puzzle",
+  "keywords": ["plugin", "sandbox", "demo", "example"],
+  "permissions": [{ "id": "storage" }],
+  "entry": "plugin.js"
+}

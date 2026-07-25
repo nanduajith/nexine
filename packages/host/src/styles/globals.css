@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+/* Design tokens & base element styles (the single source of visual truth). */
+@import '@nexine/ui/styles/tokens.css';
+@import '@nexine/ui/styles/base.css';
+
+/* Self-hosted fonts — bundled, never fetched from a CDN (no-egress). */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+/* Tailwind must scan the design system and every tool package for class usage. */
+@source '../../../ui/src';
+@source '../../../../tools';
+
+/* Expose the token layer to Tailwind's theme so font/radius utilities resolve. */
+@theme inline {
+  --font-sans: var(--nx-font-sans);
+  --font-mono: var(--nx-font-mono);
+  --radius: var(--nx-radius);
+}

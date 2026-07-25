@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Build / tool caches
+.turbo/
+.vite/
+node_modules/.vite/
+.eslintcache
+*.cache
+
+# Tauri (Rust) — desktop shell
+src-tauri/target/
+src-tauri/gen/
+src-tauri/icons/*.png
+src-tauri/icons/*.icns
+src-tauri/icons/*.ico
+src-tauri/WixTools/
+
+# Test / coverage
+coverage/
+.vitest/
+
+# Plugin signing — NEVER commit private keys.
+# The CLI's `keygen` writes an Ed25519 keypair; the *.key.json half is secret.
+# Public keys (*.pub.json) and built packages (*.nexpkg) are re-generated
+# artifacts, so they are ignored too.
+*.key.json
+nexine.key.json
+*.nexpkg
+
+# Local secrets / env
+.env
+.env.local
+.env.*.local
+*.local
+
+# Editor / tooling local settings
+.claude/settings.local.json
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# OS cruft
+.DS_Store
+Thumbs.db
+*.log

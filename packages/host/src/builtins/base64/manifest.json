@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "base64",
+  "name": "Base64",
+  "version": "1.0.0",
+  "description": "Encode and decode Base64, including the URL-safe variant.",
+  "category": "encoding",
+  "author": "Nexine",
+  "icon": "Binary",
+  "keywords": ["base64", "b64", "encode", "decode", "atob", "btoa"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

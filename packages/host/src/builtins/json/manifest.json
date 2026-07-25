@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "json",
+  "name": "JSON Formatter",
+  "version": "1.0.0",
+  "description": "Beautify, minify, and validate JSON.",
+  "category": "data",
+  "author": "Nexine",
+  "icon": "Braces",
+  "keywords": ["json", "format", "beautify", "pretty", "minify", "validate"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

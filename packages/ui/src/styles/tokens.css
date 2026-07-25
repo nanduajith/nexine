@@ -1,0 +1,79 @@
+/*
+ * Nexine design tokens — the single source of truth for the visual language.
+ * Nothing in the app hard-codes a color, radius, or font: everything reads a
+ * token, so theming (dark/light) and future white-labelling are trivial.
+ *
+ * Dark is the default. Light is applied via [data-theme='light'] on <html>.
+ */
+
+:root {
+  /* Typography (fonts are self-hosted via @fontsource — no external CDN) */
+  --nx-font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --nx-font-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Radii */
+  --nx-radius-sm: 0.375rem;
+  --nx-radius: 0.5rem;
+  --nx-radius-lg: 0.75rem;
+  --nx-radius-xl: 1rem;
+
+  /* Elevation */
+  --nx-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --nx-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --nx-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+
+  /* ---- Dark palette (default) ---- */
+  --nx-bg: #0b0d11;
+  --nx-surface: #14171d;
+  --nx-surface-2: #1b1f27;
+  --nx-surface-3: #232833;
+  --nx-border: #272d38;
+  --nx-border-strong: #333b48;
+
+  --nx-fg: #e7ebf2;
+  --nx-fg-muted: #98a2b3;
+  --nx-fg-subtle: #6a7381;
+
+  --nx-primary: #7c8cff;
+  --nx-primary-hover: #6b7dff;
+  --nx-primary-fg: #0b0d11;
+  --nx-primary-soft: rgba(124, 140, 255, 0.14);
+
+  --nx-success: #3fb950;
+  --nx-danger: #f2555a;
+  --nx-warning: #d9a441;
+
+  --nx-ring: #7c8cff;
+  --nx-selection: rgba(124, 140, 255, 0.28);
+}
+
+[data-theme='light'] {
+  --nx-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --nx-shadow-md: 0 4px 16px rgba(16, 24, 40, 0.1);
+  --nx-shadow-lg: 0 12px 40px rgba(16, 24, 40, 0.16);
+
+  --nx-bg: #ffffff;
+  --nx-surface: #f7f8fa;
+  --nx-surface-2: #eef0f4;
+  --nx-surface-3: #e6e9ef;
+  --nx-border: #e3e7ee;
+  --nx-border-strong: #d3d9e2;
+
+  --nx-fg: #171a21;
+  --nx-fg-muted: #5a626f;
+  --nx-fg-subtle: #868e9b;
+
+  --nx-primary: #4f5bd5;
+  --nx-primary-hover: #434fc4;
+  --nx-primary-fg: #ffffff;
+  --nx-primary-soft: rgba(79, 91, 213, 0.1);
+
+  --nx-success: #1a7f37;
+  --nx-danger: #cf222e;
+  --nx-warning: #9a6700;
+
+  --nx-ring: #4f5bd5;
+  --nx-selection: rgba(79, 91, 213, 0.18);
+}

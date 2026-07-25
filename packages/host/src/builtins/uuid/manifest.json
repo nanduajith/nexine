@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "uuid",
+  "name": "UUID Generator",
+  "version": "1.0.0",
+  "description": "Generate RFC 4122 v4 UUIDs with a secure CSPRNG.",
+  "category": "generators",
+  "author": "Nexine",
+  "icon": "Fingerprint",
+  "keywords": ["uuid", "guid", "v4", "random", "id", "identifier"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

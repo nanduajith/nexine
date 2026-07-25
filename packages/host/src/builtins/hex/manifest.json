@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "hex",
+  "name": "Hex Converter",
+  "version": "1.0.0",
+  "description": "Convert between text and hexadecimal bytes.",
+  "category": "encoding",
+  "author": "Nexine",
+  "icon": "Binary",
+  "keywords": ["hex", "hexadecimal", "bytes", "encode", "decode"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

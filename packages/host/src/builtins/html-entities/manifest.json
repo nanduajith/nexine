@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "html-entities",
+  "name": "HTML Entities",
+  "version": "1.0.0",
+  "description": "Escape and unescape HTML entities (named, decimal, hex).",
+  "category": "web",
+  "author": "Nexine",
+  "icon": "Code",
+  "keywords": ["html", "entities", "escape", "unescape", "encode", "decode", "ampersand"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

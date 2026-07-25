@@ -1,0 +1,21 @@
+{
+  "name": "@nexine/packaging",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Signed plugin package format: deterministic serialization, Ed25519 signing and trust-store verification. Isomorphic (Node build tool + browser side-load).",
+  "license": "MIT",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nexine/core": "workspace:*",
+    "@nexine/sdk": "workspace:*"
+  }
+}

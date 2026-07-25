@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "timestamp",
+  "name": "Timestamp",
+  "version": "1.0.0",
+  "description": "Convert between Unix time and human-readable dates.",
+  "category": "time",
+  "author": "Nexine",
+  "icon": "Clock",
+  "keywords": ["timestamp", "unix", "epoch", "date", "time", "iso", "utc"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}
