@@ -49,6 +49,20 @@ describe('handleRequest permission gating', () => {
     );
   });
 
+  it('rejects malformed requests before reaching a service', async () => {
+    const svc = services();
+    // A malicious guest can send any runtime shape; a non-string key must be
+    // refused as `invalid` and never reach the (namespace-prefixing) backend.
+    const res = await handleRequest(
+      { method: 'storage.get', key: 42 as unknown as string },
+      [{ id: 'storage' }],
+      svc,
+    );
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe('invalid');
+    expect(svc.storage.get).not.toHaveBeenCalled();
+  });
+
   it('reports service errors as internal, not thrown', async () => {
     const svc = services();
     (svc.storage.set as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('disk full'));

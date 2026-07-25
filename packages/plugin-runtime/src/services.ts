@@ -7,6 +7,12 @@ import type { HostServices } from './rpc-host';
  * Storage is strictly namespaced per plugin so one plugin can never see, list, or
  * overwrite another's data — isolation is enforced by key prefixing on the host,
  * not trusted to the guest.
+ *
+ * The namespace delimiter is `/`, which a plugin id can never contain (ids match
+ * `[a-z0-9]` segments joined by `.`/`-` — see the manifest validator). This makes
+ * the `<root>/<id>/<key>` boundary unambiguous: because the id has no `/`, the id
+ * segment always ends at the first `/`, so no two distinct (id, key) pairs can ever
+ * collide on the same backend key — even though ids and keys both allow dots.
  */
 
 /** Minimal `Storage`-shaped backend, so the namespaced store is unit-testable. */
@@ -26,7 +32,7 @@ export function createNamespacedStorage(
   pluginId: string,
   backend: KeyValueBackend,
 ): HostServices['storage'] {
-  const prefix = `${STORAGE_ROOT}.${pluginId}.`;
+  const prefix = `${STORAGE_ROOT}/${pluginId}/`;
 
   return {
     async get(key) {
