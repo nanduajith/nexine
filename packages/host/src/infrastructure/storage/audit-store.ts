@@ -18,7 +18,9 @@ export type AuditEventType =
   | 'plugin.unblock'
   | 'publisher.pin'
   | 'publisher.unpin'
-  | 'policy.import';
+  | 'policy.import'
+  | 'policy.update'
+  | 'network.grant';
 
 export interface AuditEvent {
   readonly id: string;
