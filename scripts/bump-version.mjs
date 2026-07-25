@@ -1,5 +1,10 @@
 #!/usr/bin/env node
-// Release helper: bump the app version everywhere it lives, commit, tag, and push.
+// Release helper: bump the app version everywhere it lives, on a branch, and open a PR.
+//
+// `main` is protected — we never push to it directly. A release is triggered by
+// *merging* a version bump into main (see .github/workflows/release.yml). So this
+// script prepares that bump as a `release/vX.Y.Z` branch + pull request; merging
+// the PR is what ships the release.
 //
 // The version is the single source of truth for a release. It appears in four files
 // that MUST stay in lockstep (the release workflow refuses to build if they drift):
@@ -12,10 +17,9 @@
 //   pnpm bump patch|minor|major        # bump relative to the current version
 //   pnpm bump 1.4.0                    # set an explicit version
 //   pnpm bump 1.4.0-rc.1               # pre-release
-//   pnpm bump patch --no-push          # prepare the commit + tag but don't push
+//   pnpm bump patch --no-pr            # push the release branch but don't open a PR
+//   pnpm bump patch --no-push          # create the branch + commit locally only
 //   pnpm bump patch --dry-run          # show what would change, touch nothing
-//
-// Pushing the resulting `vX.Y.Z` tag is what triggers .github/workflows/release.yml.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -29,6 +33,7 @@ const flags = new Set(argv.filter((a) => a.startsWith('--')));
 const positional = argv.filter((a) => !a.startsWith('--'));
 const dryRun = flags.has('--dry-run');
 const noPush = flags.has('--no-push');
+const noPr = flags.has('--no-pr');
 const target = positional[0];
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
@@ -68,6 +73,7 @@ if (target === 'patch' || target === 'minor' || target === 'major') {
 
 if (next === current) fail(`Version is already ${current}; nothing to bump.`);
 const tag = `v${next}`;
+const releaseBranch = `release/${tag}`;
 
 // --- Safety checks -----------------------------------------------------------
 // Untracked files (e.g. product-plan.md) are fine; a dirty *tracked* tree is not,
@@ -80,15 +86,24 @@ if (dirtyTracked && !dryRun) {
   );
 }
 
-let existingTags = '';
+let existingBranch = '';
 try {
-  existingTags = git(['tag', '--list', tag]);
+  existingBranch = git(['branch', '--list', releaseBranch]);
 } catch {
-  /* not a git repo issues surface elsewhere */
+  /* not-a-git-repo issues surface elsewhere */
 }
-if (existingTags === tag) fail(`Tag ${tag} already exists.`);
+if (existingBranch)
+  fail(`Branch ${releaseBranch} already exists — delete it or pick a new version.`);
 
-console.log(`\x1b[36m→ ${current} → ${next}\x1b[0m  (tag ${tag})`);
+const baseBranch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
+if (baseBranch !== 'main') {
+  console.warn(
+    `\x1b[33m! You are on "${baseBranch}", not main. The release PR will target main; ` +
+      `run this from an up-to-date main to avoid a stale bump.\x1b[0m`,
+  );
+}
+
+console.log(`\x1b[36m→ ${current} → ${next}\x1b[0m  (branch ${releaseBranch} → PR into main)`);
 
 // --- Rewrite the four version sites ------------------------------------------
 /** @type {Array<{ file: string, apply: (s: string) => string }>} */
@@ -144,21 +159,65 @@ for (const { file, apply } of edits) {
 }
 
 if (dryRun) {
-  console.log('\x1b[33m(dry run — no files written, no commit, no tag)\x1b[0m');
+  console.log('\x1b[33m(dry run — no files written, no branch, no commit, no PR)\x1b[0m');
   process.exit(0);
 }
 
-// --- Commit + tag ------------------------------------------------------------
+// --- Branch + commit ---------------------------------------------------------
+// `checkout -b` carries the working-tree edits onto the new branch (it branches
+// from the same HEAD), so the bump lands as a single commit on release/vX.Y.Z.
+git(['checkout', '-b', releaseBranch]);
 git(['add', ...touched]);
 git(['commit', '-m', `chore(release): ${tag}`]);
-git(['tag', '-a', tag, '-m', `Nexine ${tag}`]);
-console.log(`\x1b[32m✓ committed and tagged ${tag}\x1b[0m`);
+console.log(`\x1b[32m✓ committed the bump on ${releaseBranch}\x1b[0m`);
 
 if (noPush) {
-  console.log(`\nPush when ready to release:\n  git push --follow-tags origin HEAD`);
+  console.log(
+    `\nPush and open the release PR when ready:\n` +
+      `  git push -u origin ${releaseBranch}\n` +
+      `  gh pr create --base main --fill`,
+  );
   process.exit(0);
 }
 
-const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
-git(['push', '--follow-tags', 'origin', branch], { stdio: 'inherit' });
-console.log(`\x1b[32m✓ pushed ${branch} + ${tag} — release workflow will start on GitHub.\x1b[0m`);
+// --- Push the branch ---------------------------------------------------------
+git(['push', '-u', 'origin', releaseBranch], { stdio: 'inherit' });
+console.log(`\x1b[32m✓ pushed ${releaseBranch}\x1b[0m`);
+
+if (noPr) {
+  console.log(`\nOpen the release PR when ready:\n  gh pr create --base main --fill`);
+  process.exit(0);
+}
+
+// --- Open the pull request (best-effort; falls back to instructions) ---------
+const prTitle = `chore(release): ${tag}`;
+const prBody =
+  `Bumps the app version to \`${next}\`.\n\n` +
+  `Merging this PR into \`main\` triggers the release workflow, which builds and ` +
+  `publishes the desktop installers, web bundle, CLI tarball, and Docker image for ${tag}.`;
+try {
+  git(['rev-parse', '--verify', 'HEAD']); // noop guard that we're in a repo
+  const prUrl = execFileSync(
+    'gh',
+    [
+      'pr',
+      'create',
+      '--base',
+      'main',
+      '--head',
+      releaseBranch,
+      '--title',
+      prTitle,
+      '--body',
+      prBody,
+    ],
+    { cwd: root, encoding: 'utf8' },
+  ).trim();
+  console.log(`\x1b[32m✓ opened release PR:\x1b[0m ${prUrl}`);
+  console.log('Merge it to ship the release.');
+} catch {
+  console.log(
+    `\x1b[33m! Could not open the PR automatically (is the GitHub CLI installed and ` +
+      `authenticated?).\x1b[0m\nOpen it manually:\n  gh pr create --base main --fill`,
+  );
+}

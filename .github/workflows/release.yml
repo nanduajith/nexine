@@ -1,20 +1,20 @@
 name: Release
 
-# Triggered by pushing a version tag (created by `pnpm bump`). The tag is the
-# single source of truth for the release version; the gate job refuses to build
-# if the tag and the in-repo version files have drifted.
+# A release is triggered by a *merge into main* (main is protected — no direct
+# pushes). Every push to main is inspected; a release runs only when main's
+# current version has no release yet. So merging a `pnpm bump` PR ships a release,
+# while any other merge is a fast no-op. This keeps the trigger idempotent.
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches: [main]
 
-# A release must not be cancelled mid-flight by a later push.
+# Never let a later merge cancel an in-flight release.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-main
   cancel-in-progress: false
 
 permissions:
-  contents: write # create the GitHub Release and upload assets
+  contents: write # create the tag, the GitHub Release, and upload assets
   packages: write # push the Docker image to GHCR
 
 env:
@@ -23,51 +23,70 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # 1. Quality gate — reuse the CI checks and assert the version is consistent.
+  # 1. Decide whether this merge should release. Cheap — runs on every push.
   # ---------------------------------------------------------------------------
-  gate:
+  detect:
     runs-on: ubuntu-22.04
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      prerelease: ${{ steps.version.outputs.prerelease }}
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+      prerelease: ${{ steps.check.outputs.prerelease }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify tag matches the in-repo version
-        id: version
+      - name: Check whether the current version needs a release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION=$(jq -r .version package.json)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           if [[ "$VERSION" == *-* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
-          PKG=$(jq -r .version package.json)
+
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Release v$VERSION already exists — nothing to do."
+            exit 0
+          fi
+          echo "should_release=true" >> "$GITHUB_OUTPUT"
+
+          # Only when we're actually about to release do we insist the four
+          # version files agree — `pnpm bump` keeps them in lockstep, so a
+          # mismatch here means someone hand-edited one of them.
           CONF=$(jq -r .version src-tauri/tauri.conf.json)
           CARGO=$(grep -m1 '^version = ' src-tauri/Cargo.toml | sed -E 's/version = "(.*)"/\1/')
           fail=0
-          for pair in "package.json:$PKG" "src-tauri/tauri.conf.json:$CONF" "src-tauri/Cargo.toml:$CARGO"; do
+          for pair in "src-tauri/tauri.conf.json:$CONF" "src-tauri/Cargo.toml:$CARGO"; do
             name="${pair%%:*}"; val="${pair#*:}"
             if [ "$val" != "$VERSION" ]; then
-              echo "::error::$name version ($val) != tag ($VERSION). Run 'pnpm bump' so every version file stays in lockstep."
+              echo "::error::$name version ($val) != package.json ($VERSION). Use 'pnpm bump' so every version file stays in lockstep."
               fail=1
             fi
           done
           [ "$fail" -eq 0 ] || exit 1
-          echo "✓ All version files match $VERSION"
+          echo "✓ Releasing v$VERSION."
 
+  # ---------------------------------------------------------------------------
+  # 2. Quality gate — reuse the CI checks before we build anything shippable.
+  # ---------------------------------------------------------------------------
+  gate:
+    needs: detect
+    if: needs.detect.outputs.should_release == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
       - run: pnpm install --frozen-lockfile
-
       - name: Type-check
         run: pnpm typecheck
       - name: Lint
@@ -76,7 +95,6 @@ jobs:
         run: pnpm test
       - name: Build
         run: pnpm build
-
       - name: Verify no-egress CSP is present in the production build
         run: |
           if grep -q "connect-src 'none'" packages/host/dist/index.html; then
@@ -87,35 +105,36 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
-  # 2. Create the (draft) GitHub Release everyone else uploads into.
+  # 3. Create the (draft) release + tag at this merge commit.
   # ---------------------------------------------------------------------------
   create-release:
-    needs: gate
+    needs: [detect, gate]
+    if: needs.detect.outputs.should_release == 'true'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # full history so release notes can diff against the last tag
-      - name: Create draft release
+          fetch-depth: 0 # full history so generated notes can diff the previous tag
+      - name: Create draft release (tags the merge commit)
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.detect.outputs.version }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists — reusing it."
-          else
-            gh release create "$TAG" \
-              --draft \
-              --title "Nexine $TAG" \
-              --generate-notes \
-              ${{ needs.gate.outputs.prerelease == 'true' && '--prerelease' || '' }}
-          fi
+          # --target pins the tag to this exact merge commit, so no branch push
+          # is needed — protected main is never written to directly.
+          gh release create "v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --draft \
+            --title "Nexine v$VERSION" \
+            --generate-notes \
+            ${{ needs.detect.outputs.prerelease == 'true' && '--prerelease' || '' }}
 
   # ---------------------------------------------------------------------------
-  # 3. Desktop installers for every OS, built with Tauri and uploaded as assets.
+  # 4. Desktop installers for every OS, built with Tauri and uploaded as assets.
   # ---------------------------------------------------------------------------
   desktop:
-    needs: [gate, create-release]
+    needs: [detect, gate, create-release]
+    if: needs.detect.outputs.should_release == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -150,7 +169,6 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -174,21 +192,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Nexine ${{ github.ref_name }}
+          tagName: v${{ needs.detect.outputs.version }}
+          releaseName: Nexine v${{ needs.detect.outputs.version }}
           releaseDraft: true
-          prerelease: ${{ needs.gate.outputs.prerelease == 'true' }}
+          prerelease: ${{ needs.detect.outputs.prerelease == 'true' }}
           args: ${{ matrix.args }}
 
   # ---------------------------------------------------------------------------
-  # 4. Web static bundle (zip) + CLI tarball — attached to the same release.
+  # 5. Web static bundle (zip) + CLI tarball — attached to the same release.
   # ---------------------------------------------------------------------------
   web-and-cli:
-    needs: [gate, create-release]
+    needs: [detect, gate, create-release]
+    if: needs.detect.outputs.should_release == 'true'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
@@ -204,15 +222,16 @@ jobs:
           pnpm --filter @nexine/cli build
 
       - name: Package the web bundle (built output only — no dev/source files)
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
         run: |
-          VERSION="${{ needs.gate.outputs.version }}"
           # Zip the *contents* of dist so it unpacks to index.html at the root.
           # dist is Vite's clean build output; it contains no source or dev files.
           ( cd packages/host/dist && zip -r "$GITHUB_WORKSPACE/nexine-web-v${VERSION}.zip" . )
 
       - name: Package the CLI tarball (dist + manifest only)
         env:
-          VERSION: ${{ needs.gate.outputs.version }}
+          VERSION: ${{ needs.detect.outputs.version }}
         run: |
           cd packages/cli
           # dist/bin.js bundles all @nexine/* workspace code (see build.mjs); esbuild
@@ -234,18 +253,19 @@ jobs:
       - name: Upload web + CLI assets
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.detect.outputs.version }}
         run: |
-          VERSION="${{ needs.gate.outputs.version }}"
-          gh release upload "${GITHUB_REF_NAME}" \
+          gh release upload "v$VERSION" \
             "nexine-web-v${VERSION}.zip" \
             "nexine-cli-v${VERSION}.tgz" \
             --clobber
 
   # ---------------------------------------------------------------------------
-  # 5. Docker image → GitHub Container Registry (GHCR).
+  # 6. Docker image → GitHub Container Registry (GHCR).
   # ---------------------------------------------------------------------------
   docker:
-    needs: gate
+    needs: [detect, gate]
+    if: needs.detect.outputs.should_release == 'true'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -259,12 +279,13 @@ jobs:
 
       - name: Compute image tags
         id: tags
+        env:
+          VERSION: ${{ needs.detect.outputs.version }}
         run: |
           IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
-          VERSION="${{ needs.gate.outputs.version }}"
           TAGS="${IMAGE}:${VERSION}"
           # Only a stable (non-prerelease) build moves the :latest tag.
-          if [ "${{ needs.gate.outputs.prerelease }}" = "false" ]; then
+          if [ "${{ needs.detect.outputs.prerelease }}" = "false" ]; then
             TAGS="${TAGS},${IMAGE}:latest"
           fi
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
@@ -279,17 +300,19 @@ jobs:
           provenance: false
 
   # ---------------------------------------------------------------------------
-  # 6. Publish the release once every artefact has landed.
+  # 7. Publish the release once every artefact has landed.
   # ---------------------------------------------------------------------------
   finalize:
-    needs: [gate, desktop, web-and-cli, docker]
+    needs: [detect, desktop, web-and-cli, docker]
+    if: needs.detect.outputs.should_release == 'true'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.detect.outputs.version }}
         run: |
-          gh release edit "${GITHUB_REF_NAME}" \
+          gh release edit "v$VERSION" \
             --draft=false \
-            ${{ needs.gate.outputs.prerelease == 'true' && '--prerelease' || '--latest' }}
+            ${{ needs.detect.outputs.prerelease == 'true' && '--prerelease' || '--latest' }}
