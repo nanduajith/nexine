@@ -42,6 +42,21 @@ function denied(message: string): Result<never, RpcError> {
   return err({ code: 'denied', message });
 }
 
+function invalid(message: string): Result<never, RpcError> {
+  return err({ code: 'invalid', message });
+}
+
+/**
+ * The `request` object arrives from *untrusted* plugin code over the port, so its
+ * TypeScript type is only a compile-time hint — at runtime a malicious guest can
+ * send any shape. Validate the value-carrying fields before they reach a host
+ * service (e.g. a non-string storage key would coerce and could escape the
+ * namespace prefix). Method-level permission checks stay in `handleRequest`.
+ */
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
 function hasStorage(granted: readonly Permission[]): boolean {
   return granted.some((p) => p.id === 'storage');
 }
@@ -72,13 +87,17 @@ export async function handleRequest(
     switch (request.method) {
       case 'storage.get':
         if (!hasStorage(granted)) return denied('storage permission not granted');
+        if (!isString(request.key)) return invalid('storage.get: key must be a string');
         return ok(await services.storage.get(request.key));
       case 'storage.set':
         if (!hasStorage(granted)) return denied('storage permission not granted');
+        if (!isString(request.key) || !isString(request.value))
+          return invalid('storage.set: key and value must be strings');
         await services.storage.set(request.key, request.value);
         return ok(null);
       case 'storage.remove':
         if (!hasStorage(granted)) return denied('storage permission not granted');
+        if (!isString(request.key)) return invalid('storage.remove: key must be a string');
         await services.storage.remove(request.key);
         return ok(null);
       case 'storage.keys':
@@ -89,6 +108,7 @@ export async function handleRequest(
         return ok(await services.clipboard.readText());
       case 'clipboard.writeText':
         if (!canWrite(clipboardAccess(granted))) return denied('clipboard write not granted');
+        if (!isString(request.text)) return invalid('clipboard.writeText: text must be a string');
         await services.clipboard.writeText(request.text);
         return ok(null);
       default: {

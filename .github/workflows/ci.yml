@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: CI only needs to read the repo. No write scopes are granted to
+# the GITHUB_TOKEN, so a compromised dependency or step cannot mutate the repo.
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest

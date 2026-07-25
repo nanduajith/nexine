@@ -54,6 +54,25 @@ describe('createNamespacedStorage', () => {
     expect((await a.keys()).sort()).toEqual(['x', 'y']);
   });
 
+  it('does not collide when a dotted id + key alias another id + key', async () => {
+    // Regression: with a `.` delimiter, plugin "a" + key "b.secret" and plugin
+    // "a.b" + key "secret" both mapped to `...a.b.secret`, breaking isolation.
+    // The `/` delimiter (which ids can't contain) keeps them distinct.
+    const backend = new MemoryBackend();
+    const a = createNamespacedStorage('a', backend);
+    const ab = createNamespacedStorage('a.b', backend);
+
+    await a.set('b.secret', 'from-a');
+    await ab.set('secret', 'from-ab');
+
+    expect(await a.get('b.secret')).toBe('from-a');
+    expect(await ab.get('secret')).toBe('from-ab');
+    // Neither can see the other's key through its own namespace.
+    expect(await ab.get('b.secret')).toBeNull();
+    expect(await a.keys()).toEqual(['b.secret']);
+    expect(await ab.keys()).toEqual(['secret']);
+  });
+
   it('rejects oversized values', async () => {
     const store = createNamespacedStorage('dev.a.tool', new MemoryBackend());
     const huge = 'x'.repeat(1_000_001);
