@@ -1,0 +1,295 @@
+name: Release
+
+# Triggered by pushing a version tag (created by `pnpm bump`). The tag is the
+# single source of truth for the release version; the gate job refuses to build
+# if the tag and the in-repo version files have drifted.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# A release must not be cancelled mid-flight by a later push.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write # create the GitHub Release and upload assets
+  packages: write # push the Docker image to GHCR
+
+env:
+  PNPM_VERSION: 11.17.0
+  NODE_VERSION: 22
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Quality gate — reuse the CI checks and assert the version is consistent.
+  # ---------------------------------------------------------------------------
+  gate:
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches the in-repo version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          PKG=$(jq -r .version package.json)
+          CONF=$(jq -r .version src-tauri/tauri.conf.json)
+          CARGO=$(grep -m1 '^version = ' src-tauri/Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          fail=0
+          for pair in "package.json:$PKG" "src-tauri/tauri.conf.json:$CONF" "src-tauri/Cargo.toml:$CARGO"; do
+            name="${pair%%:*}"; val="${pair#*:}"
+            if [ "$val" != "$VERSION" ]; then
+              echo "::error::$name version ($val) != tag ($VERSION). Run 'pnpm bump' so every version file stays in lockstep."
+              fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] || exit 1
+          echo "✓ All version files match $VERSION"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Unit tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+
+      - name: Verify no-egress CSP is present in the production build
+        run: |
+          if grep -q "connect-src 'none'" packages/host/dist/index.html; then
+            echo "✓ Strict no-egress CSP present."
+          else
+            echo "::error::Production build is missing connect-src 'none' — the no-egress guarantee is broken."
+            exit 1
+          fi
+
+  # ---------------------------------------------------------------------------
+  # 2. Create the (draft) GitHub Release everyone else uploads into.
+  # ---------------------------------------------------------------------------
+  create-release:
+    needs: gate
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so release notes can diff against the last tag
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — reusing it."
+          else
+            gh release create "$TAG" \
+              --draft \
+              --title "Nexine $TAG" \
+              --generate-notes \
+              ${{ needs.gate.outputs.prerelease == 'true' && '--prerelease' || '' }}
+          fi
+
+  # ---------------------------------------------------------------------------
+  # 3. Desktop installers for every OS, built with Tauri and uploaded as assets.
+  # ---------------------------------------------------------------------------
+  desktop:
+    needs: [gate, create-release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-14
+            args: '--target universal-apple-darwin'
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            args: ''
+            rust-targets: ''
+          - platform: windows-latest
+            args: ''
+            rust-targets: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          # Tauri (WebKitGTK) + keyring (libsecret / D-Bus Secret Service) build deps.
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            librsvg2-dev \
+            patchelf \
+            libappindicator3-dev \
+            libsecret-1-dev \
+            libdbus-1-dev
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.platform }}
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build desktop app and upload to the release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Nexine ${{ github.ref_name }}
+          releaseDraft: true
+          prerelease: ${{ needs.gate.outputs.prerelease == 'true' }}
+          args: ${{ matrix.args }}
+
+  # ---------------------------------------------------------------------------
+  # 4. Web static bundle (zip) + CLI tarball — attached to the same release.
+  # ---------------------------------------------------------------------------
+  web-and-cli:
+    needs: [gate, create-release]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build web bundle and CLI
+        run: |
+          pnpm build
+          pnpm --filter @nexine/cli build
+
+      - name: Package the web bundle (built output only — no dev/source files)
+        run: |
+          VERSION="${{ needs.gate.outputs.version }}"
+          # Zip the *contents* of dist so it unpacks to index.html at the root.
+          # dist is Vite's clean build output; it contains no source or dev files.
+          ( cd packages/host/dist && zip -r "$GITHUB_WORKSPACE/nexine-web-v${VERSION}.zip" . )
+
+      - name: Package the CLI tarball (dist + manifest only)
+        env:
+          VERSION: ${{ needs.gate.outputs.version }}
+        run: |
+          cd packages/cli
+          # dist/bin.js bundles all @nexine/* workspace code (see build.mjs); esbuild
+          # is the only real runtime dependency. Strip the unresolvable `workspace:*`
+          # entries and stamp the release version so the tarball installs standalone.
+          node -e '
+            const fs = require("fs");
+            const p = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            p.version = process.env.VERSION;
+            p.dependencies = Object.fromEntries(
+              Object.entries(p.dependencies || {}).filter(([, v]) => !String(v).startsWith("workspace:")),
+            );
+            delete p.private;
+            fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
+          '
+          TARBALL=$(npm pack --silent)
+          mv "$TARBALL" "$GITHUB_WORKSPACE/nexine-cli-v${VERSION}.tgz"
+
+      - name: Upload web + CLI assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ needs.gate.outputs.version }}"
+          gh release upload "${GITHUB_REF_NAME}" \
+            "nexine-web-v${VERSION}.zip" \
+            "nexine-cli-v${VERSION}.tgz" \
+            --clobber
+
+  # ---------------------------------------------------------------------------
+  # 5. Docker image → GitHub Container Registry (GHCR).
+  # ---------------------------------------------------------------------------
+  docker:
+    needs: gate
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          VERSION="${{ needs.gate.outputs.version }}"
+          TAGS="${IMAGE}:${VERSION}"
+          # Only a stable (non-prerelease) build moves the :latest tag.
+          if [ "${{ needs.gate.outputs.prerelease }}" = "false" ]; then
+            TAGS="${TAGS},${IMAGE}:latest"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          provenance: false
+
+  # ---------------------------------------------------------------------------
+  # 6. Publish the release once every artefact has landed.
+  # ---------------------------------------------------------------------------
+  finalize:
+    needs: [gate, desktop, web-and-cli, docker]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit "${GITHUB_REF_NAME}" \
+            --draft=false \
+            ${{ needs.gate.outputs.prerelease == 'true' && '--prerelease' || '--latest' }}

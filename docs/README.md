@@ -13,6 +13,7 @@ how to extend it.
 | [plugins.md](plugins.md)               | Authoring a plugin: the manifest, permissions, the guest SDK, packaging + signing with the CLI, and side-loading. |
 | [governance.md](governance.md)         | The DIY governance tier: install-time consent, publisher trust, policy modes, the policy file, and the audit log. |
 | [self-hosting.md](self-hosting.md)     | Serving Nexine from Docker or any static host, including air-gapped deployments.                                  |
+| [releasing.md](releasing.md)           | Cutting a release: `pnpm bump`, the tag-triggered pipeline, and every artifact it produces.                       |
 
 ## Start here
 

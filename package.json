@@ -13,6 +13,7 @@
     "dev": "pnpm --filter @nexine/host dev",
     "build": "pnpm --filter @nexine/host build",
     "build:cli": "pnpm --filter @nexine/cli build",
+    "bump": "node scripts/bump-version.mjs",
     "nexine": "node packages/cli/dist/bin.js",
     "preview": "pnpm --filter @nexine/host preview",
     "desktop:dev": "tauri dev",
