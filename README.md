@@ -7,6 +7,7 @@ Nothing leaves your machine unless you explicitly allow it.
 [![CI](https://github.com/nanduajith/nexine/actions/workflows/ci.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
 [![Release](https://github.com/nanduajith/nexine/actions/workflows/release.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/release.yml)
 [![Tests](https://img.shields.io/badge/tests-160%20passing-2ea44f)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
+[![Coverage](https://nanduajith.github.io/nexine/coverage.svg)](https://github.com/nanduajith/nexine/actions)
 [![Egress](https://img.shields.io/badge/network%20egress-deny--by--default-2ea44f)](docs/security-model.md)
 [![Platform](https://img.shields.io/badge/platform-desktop%20%7C%20web-6366f1)](#desktop-app-tauri)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8b5cf6)](LICENSE)
