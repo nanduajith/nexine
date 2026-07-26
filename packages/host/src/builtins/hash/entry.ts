@@ -2,7 +2,7 @@ import { HASH_ALGORITHMS, hashAll, WEAK_ALGORITHMS } from '@nexine/tool-hash';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let input = '';

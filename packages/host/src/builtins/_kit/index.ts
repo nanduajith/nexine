@@ -1,28 +1,27 @@
 /**
- * The in-sandbox UI kit. Builtin plugins run in an opaque-origin iframe with no
- * access to the host's React or stylesheet, so this kit gives every builtin a
- * consistent, tokenized look with plain DOM — the same visual language as the
- * host, reproduced from the design tokens. It is bundled *into* each builtin, so
- * a builtin stays a fully self-contained plugin, identical in kind to any
- * side-loaded package.
+ * The first-party tool UI kit. Builtins render **in-process** (no iframe), so this
+ * kit gives every tool a consistent, tokenized look with plain DOM — the same
+ * visual language as the host, reproduced from the design tokens. Keeping tools on
+ * plain DOM (rather than the host's React) means the exact same authoring style
+ * would also work inside a sandbox, but first-party tools are trusted app code and
+ * take the fast in-process path.
  *
- * Nothing here reaches the network or the host DOM. Clipboard goes through the
- * host RPC bridge (`ctx.host.clipboard`); theme is received over a one-way
- * postMessage from the host (`nx:theme`) — no capability, no egress.
+ * Nothing here reaches the network. Clipboard goes through `ctx.host.clipboard`;
+ * theme is inherited from the host document (`<html data-theme>`).
  */
 
-import type { PluginContext, PluginDefinition, PluginInstance } from '@nexine/sdk/guest';
-
-// The registration global installed by the guest bootstrap inside the sandbox.
-declare const nexine: { definePlugin(def: PluginDefinition): void };
+import type { PluginContext, PluginInstance } from '@nexine/sdk/guest';
 
 export type { PluginContext };
 
-/** Register a builtin. Mirrors how any plugin author calls the global. */
+/**
+ * Author a first-party tool: returns the `setup` so the entry module can
+ * `export default register(...)` and be discovered by `builtins/index.ts`.
+ */
 export function register(
   setup: (ctx: PluginContext) => PluginInstance | Promise<PluginInstance>,
-): void {
-  nexine.definePlugin({ setup });
+): (ctx: PluginContext) => PluginInstance | Promise<PluginInstance> {
+  return setup;
 }
 
 type Attrs = Record<string, unknown>;
@@ -186,24 +185,9 @@ export function createApp(root: HTMLElement, ctx: PluginContext): Kit {
   injectStyles(doc);
   root.className = 'nx-app';
 
-  // Theme comes one-way from the host; default to dark until it arrives.
-  const applyTheme = (theme: string) => doc.documentElement.setAttribute('data-theme', theme);
-  window.addEventListener('message', (event: MessageEvent) => {
-    const data = event.data as { type?: string; theme?: string } | null;
-    if (data && data.type === 'nx:theme' && typeof data.theme === 'string') applyTheme(data.theme);
-  });
-  // Ask the host for the current theme now that the listener is attached.
-  window.parent.postMessage({ type: 'nx:theme-request' }, '*');
-
-  // Report our content height so the host can size the iframe to fit (iframes
-  // don't auto-size). One-way, no capability.
-  const reportHeight = () =>
-    window.parent.postMessage(
-      { type: 'nx:height', height: Math.ceil(doc.documentElement.scrollHeight) },
-      '*',
-    );
-  new ResizeObserver(reportHeight).observe(doc.body);
-  requestAnimationFrame(reportHeight);
+  // In-process: the app already sets the theme on <html data-theme> and the page
+  // flows/sizes naturally, so there is no iframe theme handshake or height
+  // reporting — the kit just styles relative to the host document.
 
   const kit: Kit = {
     h,

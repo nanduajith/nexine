@@ -2,7 +2,7 @@ import { CASE_FORMATS, CASE_LABELS, convertCase } from '@nexine/tool-case';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let input = '';

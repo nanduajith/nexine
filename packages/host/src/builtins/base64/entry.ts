@@ -2,7 +2,7 @@ import { decodeBase64, encodeBase64 } from '@nexine/tool-base64';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let mode: 'encode' | 'decode' = 'encode';

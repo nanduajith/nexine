@@ -2,7 +2,7 @@ import { generateUuids } from '@nexine/tool-uuid';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let count: '1' | '5' | '10' = '5';

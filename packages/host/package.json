@@ -7,7 +7,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
+    "dev:desktop": "cross-env NEXINE_TARGET=desktop vite",
     "build": "vite build",
+    "build:desktop": "cross-env NEXINE_TARGET=desktop vite build",
     "preview": "vite preview --port 4173",
     "typecheck": "tsc --noEmit"
   },

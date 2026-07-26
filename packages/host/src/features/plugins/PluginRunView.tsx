@@ -1,6 +1,6 @@
 import { createTrustStore } from '@nexine/packaging';
 import type { PackageSigner, PermissionResolution } from '@nexine/plugin-runtime';
-import { inspectPackage, inspectPlugin, loadPackage, loadPlugin } from '@nexine/plugin-runtime';
+import { inspectPackage, loadPackage } from '@nexine/plugin-runtime';
 import { Badge, Button, Panel } from '@nexine/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -11,7 +11,6 @@ import {
   type GovernanceState,
 } from '../../infrastructure/storage/governance-store';
 
-import type { BuiltinPlugin } from './builtin-plugins';
 import type { PluginToolSource } from './plugin-source';
 import { Notice, PermissionList, shortKey, SignerBadge } from './ui';
 
@@ -23,7 +22,7 @@ import { Notice, PermissionList, shortKey, SignerBadge } from './ui';
  */
 const SANDBOX_DOC_URL = new URL('sandbox.html', document.baseURI).href;
 
-/** Normalised inspection outcome, unified across signed packages and examples. */
+/** Normalised inspection outcome for a signed package. */
 type Inspection =
   | { readonly status: 'loading' }
   | { readonly status: 'invalid'; readonly message: string }
@@ -34,21 +33,6 @@ type Inspection =
       readonly resolution: PermissionResolution;
       readonly signer?: PackageSigner;
     };
-
-function inspectBuiltin(plugin: BuiltinPlugin, policy: GovernanceState['policy']): Inspection {
-  const result = inspectPlugin({ manifest: plugin.manifest, policy });
-  if (!result.ok) {
-    return result.issues
-      ? {
-          status: 'invalid',
-          message: result.issues
-            .map((issue) => `${issue.path || 'manifest'}: ${issue.message}`)
-            .join('; '),
-        }
-      : { status: 'blocked', message: result.error };
-  }
-  return { status: 'ok', resolution: result.resolution };
-}
 
 function goToSettings() {
   window.location.hash = '#/settings';
@@ -94,26 +78,6 @@ function SandboxMount({
       iframeRef.current = iframe;
       containerRef.current?.appendChild(iframe);
     };
-
-    if (source.kind === 'builtin') {
-      const result = loadPlugin({
-        manifest: source.plugin.manifest,
-        pluginSource: source.plugin.source,
-        sandboxDocUrl: SANDBOX_DOC_URL,
-        policy: governance.policy,
-        onFatal: setFatal,
-      });
-      if (!result.ok) {
-        setFatal(result.error);
-        return () => window.removeEventListener('message', onMessage);
-      }
-      mount(result.sandbox.iframe);
-      return () => {
-        window.removeEventListener('message', onMessage);
-        iframeRef.current = null;
-        result.sandbox.dispose();
-      };
-    }
 
     // Signed package: re-verify on mount and re-enforce the trust requirement.
     let disposed = false;
@@ -246,10 +210,6 @@ export function PluginRunView({ source }: { source: PluginToolSource }) {
   const [inspection, setInspection] = useState<Inspection>({ status: 'loading' });
 
   useEffect(() => {
-    if (source.kind === 'builtin') {
-      setInspection(inspectBuiltin(source.plugin, governance.policy));
-      return;
-    }
     let stale = false;
     setInspection({ status: 'loading' });
     void inspectPackage({
@@ -338,11 +298,7 @@ export function PluginRunView({ source }: { source: PluginToolSource }) {
   }
 
   const { resolution, signer } = inspection;
-  const blockedByTrust =
-    source.kind === 'package' &&
-    governance.trust.requireTrusted &&
-    signer !== undefined &&
-    !signer.trusted;
+  const blockedByTrust = governance.trust.requireTrusted && signer !== undefined && !signer.trusted;
 
   const posture = (
     <div className="flex flex-wrap items-center gap-2">

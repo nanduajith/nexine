@@ -2,7 +2,7 @@ import { decodeHtml, encodeHtml } from '@nexine/tool-html-entities';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let mode: 'encode' | 'decode' = 'encode';

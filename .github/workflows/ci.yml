@@ -47,3 +47,38 @@ jobs:
             echo "::error::Production build is missing connect-src 'none' — the no-egress guarantee is broken."
             exit 1
           fi
+
+      - name: Verify unsafe-eval never appears in the production build
+        run: |
+          if grep -RIl "unsafe-eval" packages/host/dist --include='*.js' --include='*.html' --include='*.css' | grep -q .; then
+            echo "::error::Production build contains 'unsafe-eval'."
+            exit 1
+          fi
+          echo "✓ No unsafe-eval."
+
+      - name: Verify the web build ships NO third-party plugin machinery
+        # The web tier is first-party tools only. The plugin runtime, packaging,
+        # sandbox document and guest runtime are desktop-only and must never enter
+        # the web bundle (see plugin-adapter swap in vite.config.ts).
+        run: |
+          dist=packages/host/dist
+          fail=0
+          for f in "$dist/sandbox.html" "$dist/plugin-guest.js"; do
+            if [ -e "$f" ]; then
+              echo "::error::Web build unexpectedly emitted $f (plugin sandbox artifact)."
+              fail=1
+            fi
+          done
+          if ls "$dist"/assets/plugin-guest*.js >/dev/null 2>&1; then
+            echo "::error::Web build unexpectedly emitted a plugin-guest chunk."
+            fail=1
+          fi
+          # String literals unique to the plugin subsystem — none should survive in shipped JS.
+          for sym in "nx:init" "nx:ready" "nx:request" "definePlugin" "createPluginSandbox" "runNexineGuest" "attachRpcHost" ".nexpkg"; do
+            if grep -RIl -- "$sym" "$dist"/assets --include='*.js' 2>/dev/null | grep -q .; then
+              echo "::error::Web bundle contains plugin-subsystem symbol '$sym'."
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then exit 1; fi
+          echo "✓ Web build is free of third-party plugin machinery."

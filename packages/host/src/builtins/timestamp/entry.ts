@@ -11,7 +11,7 @@ const ROWS: ReadonlyArray<readonly [keyof TimeBreakdown, string]> = [
   ['relative', 'Relative'],
 ];
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let input = '';
