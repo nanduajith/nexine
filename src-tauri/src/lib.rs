@@ -209,11 +209,8 @@ pub fn run() {
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. } => {
-                #[cfg(target_os = "macos")]
-                {
-                    window.hide().unwrap();
-                    api.prevent_close();
-                }
+                window.hide().unwrap();
+                api.prevent_close();
             }
             _ => {}
         })
