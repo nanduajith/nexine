@@ -124,6 +124,20 @@ fn handle_sandbox_request(
 /// asset resolver (not the OS resource dir) reads it straight from `frontendDist`,
 /// which is where the guest runtime is emitted.
 fn serve_guest_script(app: &tauri::AppHandle, csp: &str) -> HttpResponse<Vec<u8>> {
+    #[cfg(debug_assertions)]
+    {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let path = std::path::Path::new(manifest_dir).join("../packages/host/dist/plugin-guest.js");
+        if let Ok(bytes) = std::fs::read(&path) {
+            return HttpResponse::builder()
+                .status(200)
+                .header("Content-Type", "application/javascript; charset=utf-8")
+                .header("Content-Security-Policy", csp)
+                .body(bytes)
+                .unwrap_or_else(|_| error_response(500, "response build failed"));
+        }
+    }
+
     match app.asset_resolver().get("/plugin-guest.js".to_string()) {
         Some(asset) => HttpResponse::builder()
             .status(200)

@@ -77,6 +77,7 @@ export default defineConfig(({ command }) => {
     // dev). The GitHub Pages *demo* build overrides this to its subpath via
     // NEXINE_BASE=/nexine/app/ so asset URLs resolve under the project site.
     base: process.env['NEXINE_BASE'] ?? '/',
+    cacheDir: `node_modules/.vite-${TARGET}`,
     plugins,
     define: { __NEXINE_DESKTOP__: JSON.stringify(TARGET === 'desktop') },
     server: { port: 5273 },

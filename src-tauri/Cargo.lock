@@ -1856,11 +1856,13 @@ name = "nexine"
 version = "0.1.0"
 dependencies = [
  "keyring",
+ "percent-encoding",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-global-shortcut",
+ "url",
 ]
 
 [[package]]
