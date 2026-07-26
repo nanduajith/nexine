@@ -1,7 +1,7 @@
 # Nexine
 
 **An offline-first, no-egress developer toolbox that grows into a governed plugin platform.**
-Your data never leaves your machine.
+Nothing leaves your machine unless you explicitly allow it.
 
 <!-- prettier-ignore-start -->
 [![CI](https://github.com/nanduajith/nexine/actions/workflows/ci.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
