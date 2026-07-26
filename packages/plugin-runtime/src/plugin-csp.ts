@@ -9,17 +9,16 @@ import { isNetworkPermission } from '@nexine/sdk';
  * every fetch/XHR/WebSocket/beacon the plugin could attempt. There is no host
  * proxy to subvert; denial is enforced by the engine that runs the code.
  *
+ * On desktop this is served as the HTTP `Content-Security-Policy` header for the
+ * `nexine-sandbox` document (the Rust handler mirrors this output). The document
+ * carries no `<meta>` CSP, so this header alone governs the iframe.
+ *
  * This deterministic, host-set-per-plugin network denial is the core security
  * differentiator over extension models that share an unrestricted process.
  */
 
 export interface PluginCspOptions {
   readonly granted: readonly Permission[];
-  /**
-   * A single-use nonce authorizing the host's bootstrap script inside the iframe.
-   * Must be a fresh, unguessable value per iframe instance.
-   */
-  readonly nonce: string;
 }
 
 function networkHosts(granted: readonly Permission[]): readonly string[] {
@@ -28,14 +27,14 @@ function networkHosts(granted: readonly Permission[]): readonly string[] {
 }
 
 export function buildPluginCsp(options: PluginCspOptions): string {
-  const { granted, nonce } = options;
+  const { granted } = options;
   const hosts = networkHosts(granted);
 
   const directives: Record<string, readonly string[]> = {
     // Everything is denied unless a directive below re-enables it narrowly.
     'default-src': ["'none'"],
-    // Host bootstrap runs under a nonce; plugin code loads as a blob module.
-    'script-src': [`'nonce-${nonce}'`, 'blob:'],
+    // The bundled guest loads same-origin ('self'); plugin code runs as a blob module.
+    'script-src': ["'self'", 'blob:'],
     // Plugin UI may set inline styles (cannot exfiltrate); scripts stay locked down.
     'style-src': ["'unsafe-inline'", 'blob:'],
     'img-src': ["'self'", 'data:', 'blob:'],

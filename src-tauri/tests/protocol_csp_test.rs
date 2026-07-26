@@ -11,7 +11,7 @@ use nexine_lib::build_plugin_csp;
 
 #[test]
 fn no_hosts_produces_connect_src_none() {
-    let csp = build_plugin_csp(&[], "test-nonce");
+    let csp = build_plugin_csp(&[]);
     assert!(
         csp.contains("connect-src 'none'"),
         "expected connect-src 'none' in: {csp}"
@@ -20,7 +20,7 @@ fn no_hosts_produces_connect_src_none() {
 
 #[test]
 fn single_host_in_connect_src() {
-    let csp = build_plugin_csp(&["https://api.example.com".to_string()], "test-nonce");
+    let csp = build_plugin_csp(&["https://api.example.com".to_string()]);
     assert!(
         csp.contains("connect-src https://api.example.com"),
         "expected connect-src with single host in: {csp}"
@@ -33,13 +33,10 @@ fn single_host_in_connect_src() {
 
 #[test]
 fn multiple_hosts_in_connect_src() {
-    let csp = build_plugin_csp(
-        &[
-            "https://api.example.com".to_string(),
-            "https://cdn.example.com".to_string(),
-        ],
-        "test-nonce",
-    );
+    let csp = build_plugin_csp(&[
+        "https://api.example.com".to_string(),
+        "https://cdn.example.com".to_string(),
+    ]);
     assert!(
         csp.contains("connect-src https://api.example.com https://cdn.example.com"),
         "expected connect-src with multiple hosts in: {csp}"
@@ -48,8 +45,8 @@ fn multiple_hosts_in_connect_src() {
 
 #[test]
 fn never_contains_unsafe_eval() {
-    let csp_none = build_plugin_csp(&[], "n");
-    let csp_hosts = build_plugin_csp(&["https://x.com".to_string()], "n");
+    let csp_none = build_plugin_csp(&[]);
+    let csp_hosts = build_plugin_csp(&["https://x.com".to_string()]);
     assert!(
         !csp_none.contains("unsafe-eval"),
         "CSP must never contain unsafe-eval: {csp_none}"
@@ -61,17 +58,21 @@ fn never_contains_unsafe_eval() {
 }
 
 #[test]
-fn nonce_embedded_in_script_src() {
-    let csp = build_plugin_csp(&[], "my-unique-nonce");
+fn guest_loads_as_self_plugin_as_blob() {
+    let csp = build_plugin_csp(&[]);
     assert!(
-        csp.contains("script-src 'nonce-my-unique-nonce' blob:"),
-        "expected nonce in script-src: {csp}"
+        csp.contains("script-src 'self' blob:"),
+        "expected script-src 'self' blob: in: {csp}"
+    );
+    assert!(
+        !csp.contains("nonce-"),
+        "per-plugin CSP no longer uses a nonce: {csp}"
     );
 }
 
 #[test]
 fn default_src_is_none() {
-    let csp = build_plugin_csp(&[], "n");
+    let csp = build_plugin_csp(&[]);
     assert!(
         csp.contains("default-src 'none'"),
         "expected default-src 'none' in: {csp}"
@@ -80,7 +81,7 @@ fn default_src_is_none() {
 
 #[test]
 fn contains_required_directives() {
-    let csp = build_plugin_csp(&[], "n");
+    let csp = build_plugin_csp(&[]);
     let required = [
         "object-src 'none'",
         "base-uri 'none'",

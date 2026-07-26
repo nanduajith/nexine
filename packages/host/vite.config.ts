@@ -29,7 +29,7 @@ function cspPlugin(isDev: boolean): Plugin {
   return {
     name: 'nexine-csp',
     transformIndexHtml(html) {
-      const csp = buildContentSecurityPolicy({ dev: isDev });
+      const csp = buildContentSecurityPolicy({ dev: isDev, desktop: TARGET === 'desktop' });
       const meta = `<meta http-equiv="Content-Security-Policy" content="${csp}" />`;
       return html.replace('</head>', `    ${meta}\n  </head>`);
     },

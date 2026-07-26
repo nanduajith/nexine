@@ -88,6 +88,23 @@ jobs:
     needs: verify
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The Rust crate embeds the frontend via `tauri::generate_context!()`, so the
+      # desktop frontend (frontendDist) must exist before the crate can compile.
+      - name: Build desktop frontend
+        run: pnpm build:desktop
+
       - uses: dtolnay/rust-toolchain@stable
       - name: Install Linux deps
         run: |

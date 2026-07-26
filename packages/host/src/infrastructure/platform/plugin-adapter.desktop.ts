@@ -53,11 +53,9 @@ export const pluginAdapter: PluginAdapter = {
     },
   ],
   sandboxDocUrlFor(pluginId: string, grantedHosts: readonly string[]): string {
-    // Generate a fresh nonce per load — unguessable, single-use.
-    const nonce = crypto.randomUUID().replace(/-/g, '');
+    // The granted hosts become the sandbox document's per-plugin `connect-src`
+    // (the Rust handler builds the CSP header from them); no hosts ⇒ deny all.
     const hosts = grantedHosts.length > 0 ? encodeURIComponent(grantedHosts.join(',')) : '';
-    return `nexine-sandbox://plugin/${encodeURIComponent(
-      pluginId,
-    )}?nonce=${nonce}${hosts ? `&hosts=${hosts}` : ''}`;
+    return `nexine-sandbox://plugin/${encodeURIComponent(pluginId)}${hosts ? `?hosts=${hosts}` : ''}`;
   },
 };

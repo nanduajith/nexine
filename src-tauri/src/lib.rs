@@ -6,6 +6,7 @@
 use keyring::Entry;
 use percent_encoding::percent_decode_str;
 use tauri::http::{self, Response as HttpResponse};
+use tauri::Manager;
 use url::Url;
 
 const KEYCHAIN_SERVICE: &str = "dev.nexine.app";
@@ -17,12 +18,14 @@ const KEYCHAIN_SERVICE: &str = "dev.nexine.app";
 /// Build a Content-Security-Policy string for a sandboxed plugin iframe.
 ///
 /// `hosts` are the granted network origins (e.g. `["https://api.example.com"]`).
-/// When empty, `connect-src 'none'` is produced (deny-by-default). The `nonce`
-/// authorises the host's bootstrap `<script>` inside the sandbox document.
+/// When empty, `connect-src 'none'` is produced (deny-by-default). The bundled
+/// guest loads same-origin (`'self'`) and the untrusted plugin runs as a `blob:`
+/// module — mirroring `@nexine/plugin-runtime`'s `buildPluginCsp`. The document
+/// served on this protocol carries no `<meta>` CSP, so this header alone governs it.
 ///
 /// This function is `pub` so the integration tests can assert CSP correctness
 /// without exercising the full Tauri protocol machinery.
-pub fn build_plugin_csp(hosts: &[String], nonce: &str) -> String {
+pub fn build_plugin_csp(hosts: &[String]) -> String {
     let connect_src = if hosts.is_empty() {
         "connect-src 'none'".to_string()
     } else {
@@ -31,7 +34,7 @@ pub fn build_plugin_csp(hosts: &[String], nonce: &str) -> String {
 
     [
         "default-src 'none'",
-        &format!("script-src 'nonce-{}' blob:", nonce),
+        "script-src 'self' blob:",
         "style-src 'unsafe-inline' blob:",
         "img-src 'self' data: blob:",
         "font-src 'self' data: blob:",
@@ -44,6 +47,22 @@ pub fn build_plugin_csp(hosts: &[String], nonce: &str) -> String {
         "child-src 'none'",
     ]
     .join("; ")
+}
+
+/// The sandbox document served on the `nexine-sandbox` protocol. It carries **no**
+/// `<meta>` CSP — the per-plugin policy is applied as an HTTP header instead, so a
+/// second (conflicting) policy never intersects it. The guest script is loaded
+/// same-origin (authorised by `script-src 'self'`); it then runs the untrusted
+/// plugin as a `blob:` module.
+fn sandbox_html() -> &'static str {
+    concat!(
+        "<!doctype html><html><head><meta charset=\"utf-8\">",
+        "<title>Nexine plugin sandbox</title></head>",
+        "<body style=\"margin:0;background:transparent;color-scheme:dark\">",
+        "<div id=\"nx-plugin-root\"></div>",
+        "<script src=\"plugin-guest.js\"></script>",
+        "</body></html>"
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -60,12 +79,12 @@ fn query_param(url: &Url, key: &str) -> Option<String> {
 
 /// Handle a request to the `nexine-sandbox` custom protocol.
 ///
-/// URL format: `nexine-sandbox://plugin/<id>[/plugin-guest.js]?nonce=<n>[&hosts=<csv>]`
+/// URL format: `nexine-sandbox://plugin/<id>[/plugin-guest.js][?hosts=<csv>]`
 ///
-/// - Requests ending in `/plugin-guest.js` serve the guest runtime script.
-/// - All other requests serve the sandbox HTML document.
-/// - Both responses carry a `Content-Security-Policy` header computed from the
-///   query parameters (nonce + comma-separated granted hosts).
+/// - Requests ending in `/plugin-guest.js` serve the bundled guest runtime script.
+/// - All other requests serve the (meta-CSP-free) sandbox HTML document.
+/// - Both responses carry the per-plugin `Content-Security-Policy` header built
+///   from the comma-separated granted hosts (`connect-src 'none'` when absent).
 fn handle_sandbox_request(
     app: &tauri::AppHandle,
     request: http::Request<Vec<u8>>,
@@ -75,7 +94,6 @@ fn handle_sandbox_request(
         Err(_) => return error_response(400, "invalid URL"),
     };
 
-    let nonce = query_param(&url, "nonce").unwrap_or_default();
     let hosts: Vec<String> = query_param(&url, "hosts")
         .map(|raw| {
             percent_decode_str(&raw)
@@ -87,54 +105,34 @@ fn handle_sandbox_request(
         })
         .unwrap_or_default();
 
-    let csp = build_plugin_csp(&hosts, &nonce);
+    let csp = build_plugin_csp(&hosts);
     let path = url.path();
 
-    if path.ends_with("/plugin-guest.js") || path == "/plugin-guest.js" {
-        serve_frontend_file(app, "plugin-guest.js", "application/javascript", &csp)
+    if path.ends_with("plugin-guest.js") {
+        serve_guest_script(app, &csp)
     } else {
-        serve_frontend_file(app, "sandbox.html", "text/html", &csp)
+        HttpResponse::builder()
+            .status(200)
+            .header("Content-Type", "text/html; charset=utf-8")
+            .header("Content-Security-Policy", csp)
+            .body(sandbox_html().as_bytes().to_vec())
+            .unwrap_or_else(|_| error_response(500, "response build failed"))
     }
 }
 
-/// Read a file from the bundled frontend dist and return it as an HTTP response
-/// with the given content type and CSP header.
-fn serve_frontend_file(
-    app: &tauri::AppHandle,
-    filename: &str,
-    content_type: &str,
-    csp: &str,
-) -> HttpResponse<Vec<u8>> {
-    // Tauri 2 resolves the frontend dist directory relative to the app bundle.
-    // `resolve_resource` finds files declared in `frontendDist`.
-    let resource_path = app
-        .path()
-        .resolve(filename, tauri::path::BaseDirectory::Resource);
-
-    let body = match resource_path {
-        Ok(path) => match std::fs::read(&path) {
-            Ok(bytes) => bytes,
-            Err(e) => {
-                return error_response(
-                    500,
-                    &format!("failed to read {}: {}", filename, e),
-                )
-            }
-        },
-        Err(e) => {
-            return error_response(
-                500,
-                &format!("failed to resolve {}: {}", filename, e),
-            )
-        }
-    };
-
-    HttpResponse::builder()
-        .status(200)
-        .header("Content-Type", format!("{}; charset=utf-8", content_type))
-        .header("Content-Security-Policy", csp)
-        .body(body)
-        .unwrap_or_else(|_| error_response(500, "response build failed"))
+/// Serve the bundled `plugin-guest.js` from the embedded frontend assets. Using the
+/// asset resolver (not the OS resource dir) reads it straight from `frontendDist`,
+/// which is where the guest runtime is emitted.
+fn serve_guest_script(app: &tauri::AppHandle, csp: &str) -> HttpResponse<Vec<u8>> {
+    match app.asset_resolver().get("/plugin-guest.js".to_string()) {
+        Some(asset) => HttpResponse::builder()
+            .status(200)
+            .header("Content-Type", "application/javascript; charset=utf-8")
+            .header("Content-Security-Policy", csp)
+            .body(asset.bytes)
+            .unwrap_or_else(|_| error_response(500, "response build failed")),
+        None => error_response(404, "plugin-guest.js not found"),
+    }
 }
 
 fn error_response(status: u16, message: &str) -> HttpResponse<Vec<u8>> {

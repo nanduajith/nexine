@@ -14,9 +14,23 @@
 export interface CspOptions {
   /** When true, emit the HMR-friendly development policy instead of the strict one. */
   readonly dev?: boolean;
+  /**
+   * When true (desktop build), allow the plugin iframe to load from the Tauri
+   * `nexine-sandbox` custom protocol origin. The web build never sets this — it has
+   * no plugins and no iframes, so `frame-src` stays `'self'`.
+   */
+  readonly desktop?: boolean;
 }
 
 type Directives = Record<string, readonly string[]>;
+
+/**
+ * The Tauri custom-protocol origins the desktop plugin sandbox is served from.
+ * The scheme differs by platform: a custom scheme on macOS/iOS (`nexine-sandbox:`)
+ * and an `http://<scheme>.localhost` origin on Windows/Linux. Both are added to
+ * `frame-src` so the app document may embed the sandbox iframe.
+ */
+const DESKTOP_SANDBOX_FRAME_SRC = ['nexine-sandbox:', 'http://nexine-sandbox.localhost'];
 
 const BASE_DIRECTIVES: Directives = {
   'default-src': ["'self'"],
@@ -35,10 +49,12 @@ const BASE_DIRECTIVES: Directives = {
   'base-uri': ["'none'"],
   'form-action': ["'none'"],
   'frame-ancestors': ["'none'"],
-  // Plugins run in sandboxed, opaque-origin `srcdoc` iframes. `'self'` permits the
-  // host to create them; each iframe then carries its OWN strict per-plugin CSP
-  // (see @nexine/plugin-runtime) that governs its egress. Crucially this does not
-  // loosen the app's own `connect-src 'none'` — the no-egress guarantee stands.
+  // On desktop, plugins run in an opaque-origin iframe served from the
+  // `nexine-sandbox` custom protocol (see the `desktop` option below); each iframe
+  // carries its OWN strict per-plugin CSP (served as an HTTP header) that governs
+  // its egress. `'self'` alone here; the desktop origins are appended when building
+  // the desktop policy. Crucially this never loosens the app's own
+  // `connect-src 'none'` — the no-egress guarantee stands.
   'frame-src': ["'self'"],
 };
 
@@ -54,6 +70,13 @@ export function buildContentSecurityPolicy(options: CspOptions = {}): string {
     directives['script-src'] = ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
     directives['connect-src'] = ["'self'", 'ws:', 'wss:'];
     directives['frame-src'] = ["'self'", 'blob:'];
+  }
+
+  if (options.desktop) {
+    // Desktop only: let the app embed the plugin sandbox iframe served from the
+    // Tauri custom protocol. Does not touch connect-src — the app stays no-egress.
+    const frameSrc = directives['frame-src'] ?? ["'self'"];
+    directives['frame-src'] = [...frameSrc, ...DESKTOP_SANDBOX_FRAME_SRC];
   }
 
   return Object.entries(directives)
