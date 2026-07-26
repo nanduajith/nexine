@@ -85,7 +85,7 @@ export function runNexineGuest(): void {
     };
     const host: HostBridge = { storage, clipboard };
     // `manifest` is set from `nx:init` before boot runs.
-    return { manifest: manifest as PluginManifest, permissions: granted, host };
+    return { manifest: manifest as PluginManifest, permissions: granted, host, t: (key) => key };
   }
 
   /**

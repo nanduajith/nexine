@@ -12,14 +12,14 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
-          actions: k.button('Regenerate', { variant: 'primary', onClick: update }),
+          title: ctx.t('Options'),
+          actions: k.button(ctx.t('Regenerate'), { variant: 'primary', onClick: update }),
           body: k.segmented(
             [
-              { value: 'person', label: 'Person' },
-              { value: 'address', label: 'Address' },
-              { value: 'company', label: 'Company' },
-              { value: 'creditCard', label: 'Credit Card' },
+              { value: 'person', label: ctx.t('Person') },
+              { value: 'address', label: ctx.t('Address') },
+              { value: 'company', label: ctx.t('Company') },
+              { value: 'creditCard', label: ctx.t('Credit Card') },
             ],
             type,
             (v) => {
@@ -29,7 +29,7 @@ export default register((ctx) => ({
           ),
         }),
         k.panel({
-          title: 'Generated',
+          title: ctx.t('Generated'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

@@ -27,7 +27,7 @@ export default register((ctx) => ({
             { class: 'nx-mono nx-muted', style: 'font-size:12px;font-weight:500' },
             algorithm,
           ),
-          WEAK_ALGORITHMS.has(algorithm) ? k.badge('legacy', 'warning') : null,
+          WEAK_ALGORITHMS.has(algorithm) ? k.badge(ctx.t('legacy'), 'warning') : null,
         ),
         value,
         k.copyButton(() => value.textContent ?? ''),
@@ -35,7 +35,7 @@ export default register((ctx) => ({
     });
 
     const inputTa = k.textarea({
-      placeholder: 'Text to hash…',
+      placeholder: ctx.t('Text to hash…'),
       minHeight: 160,
       oninput: (v) => {
         input = v;
@@ -55,7 +55,7 @@ export default register((ctx) => ({
 
     root.append(
       k.stack(
-        k.field('Input', inputTa),
+        k.field(ctx.t('Input'), inputTa),
         k.h('div', { class: 'nx-stack', style: 'gap:8px' }, ...rows),
       ),
     );

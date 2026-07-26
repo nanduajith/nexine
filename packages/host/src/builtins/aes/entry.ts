@@ -8,9 +8,9 @@ export default register((ctx) => ({
 
     let mode: 'encrypt' | 'decrypt' = 'encrypt';
 
-    const input = k.textarea({ placeholder: 'Text to encrypt...' });
-    const passInput = k.input({ placeholder: 'Passphrase' });
-    const out = k.textarea({ readOnly: true, placeholder: 'Result will appear here...' });
+    const input = k.textarea({ placeholder: ctx.t('Text to encrypt...') });
+    const passInput = k.input({ placeholder: ctx.t('Passphrase') });
+    const out = k.textarea({ readOnly: true, placeholder: ctx.t('Result will appear here...') });
     out.classList.add('nx-mono');
 
     const update = async () => {
@@ -41,11 +41,11 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Input',
+          title: ctx.t('Input'),
           actions: k.segmented(
             [
-              { value: 'encrypt', label: 'Encrypt' },
-              { value: 'decrypt', label: 'Decrypt' },
+              { value: 'encrypt', label: ctx.t('Encrypt') },
+              { value: 'decrypt', label: ctx.t('Decrypt') },
             ] as const,
             mode,
             (v) => {
@@ -55,10 +55,10 @@ export default register((ctx) => ({
               void update();
             },
           ),
-          body: k.stack(k.field('Passphrase', passInput), input),
+          body: k.stack(k.field(ctx.t('Passphrase'), passInput), input),
         }),
         k.panel({
-          title: 'Output',
+          title: ctx.t('Output'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

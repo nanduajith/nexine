@@ -2,6 +2,7 @@ import { type ToolModule } from '@nexine/ui';
 import { Compass, Download, Lock, Search, ShieldCheck } from 'lucide-react';
 
 import type { ToolSections } from '../../app/hooks/useTools';
+import { useTranslation } from '../../infrastructure/i18n';
 import { pluginAdapter } from '../../infrastructure/platform/plugin-adapter';
 import { preferencesStore } from '../../infrastructure/storage/preferences-store';
 import { toolIcon } from '../../lib/icons';
@@ -13,6 +14,7 @@ interface HomeViewProps {
 }
 
 export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps) {
+  const { t } = useTranslation();
   const { allTools } = sections;
   // Get recent tools directly from the store (this updates on load, which is fine for Home)
   const recentIds = preferencesStore.getSnapshot().recents;
@@ -26,10 +28,10 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
       {/* Header & Search */}
       <div className="mb-12 text-center">
         <h1 className="mb-3 text-3xl font-bold tracking-tight text-[var(--nx-fg)]">
-          Welcome to Nexine
+          {t('Welcome to Nexine')}
         </h1>
         <p className="mb-8 text-lg text-[var(--nx-fg-muted)]">
-          Your offline-first, no-egress developer toolbox.
+          {t('Your offline-first, no-egress developer toolbox.')}
         </p>
         <button
           type="button"
@@ -37,7 +39,9 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
           className="mx-auto flex w-full max-w-md items-center gap-3 rounded-full border border-[var(--nx-border)] bg-[var(--nx-surface)] px-6 py-3 text-left text-[var(--nx-fg-muted)] shadow-sm transition-colors hover:border-[var(--nx-border-strong)] hover:text-[var(--nx-fg)]"
         >
           <Search size={18} />
-          <span className="flex-1 text-base">Search {allTools.length} tools...</span>
+          <span className="flex-1 text-base">
+            {t('Search')} {allTools.length} {t('tools...')}
+          </span>
           <kbd className="rounded border border-[var(--nx-border)] bg-[var(--nx-surface-2)] px-2 py-0.5 font-mono text-xs text-[var(--nx-fg-subtle)]">
             ⌘K
           </kbd>
@@ -50,7 +54,7 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
         <div className="space-y-6">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--nx-fg)]">
             <Compass className="text-[var(--nx-primary)]" size={20} />
-            {recentTools.length > 0 ? 'Recently Used' : 'Discover Tools'}
+            {recentTools.length > 0 ? t('Recently Used') : t('Discover Tools')}
           </h2>
           <div className="grid grid-cols-2 gap-3">
             {(recentTools.length > 0 ? recentTools : allTools.slice(0, 8)).map(
@@ -66,7 +70,9 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
                       <Icon size={16} />
                     </div>
                     <span className="truncate font-medium text-[var(--nx-fg)] text-sm">
-                      {tool.name}
+                      {t(`tool.${tool.id}.name`) !== `tool.${tool.id}.name`
+                        ? t(`tool.${tool.id}.name`)
+                        : tool.name}
                     </span>
                   </button>
                 );
@@ -82,11 +88,12 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
               <div className="border-b border-[var(--nx-border)] bg-[var(--nx-surface-3)] px-5 py-4">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--nx-fg)]">
                   <ShieldCheck className="text-[var(--nx-primary)]" size={20} />
-                  Unlock Desktop Features
+                  {t('Unlock Desktop Features')}
                 </h2>
                 <p className="mt-1 text-sm text-[var(--nx-fg-muted)]">
-                  You are using the lightweight web version. Download the desktop app for full
-                  platform access.
+                  {t(
+                    'You are using the lightweight web version. Download the desktop app for full platform access.',
+                  )}
                 </p>
               </div>
               <div className="p-5">
@@ -97,21 +104,10 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-[var(--nx-fg)]">
-                        Third-party Plugins
+                        {t('Third-party Plugins')}
                       </h3>
                       <p className="text-xs text-[var(--nx-fg-subtle)] mt-0.5">
-                        Install custom tools from the community registry.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3 opacity-60 grayscale transition-all hover:opacity-80">
-                    <div className="mt-0.5 rounded bg-[var(--nx-surface-3)] p-1.5 text-[var(--nx-fg-subtle)]">
-                      <Lock size={14} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-[var(--nx-fg)]">Global Hotkey</h3>
-                      <p className="text-xs text-[var(--nx-fg-subtle)] mt-0.5">
-                        Summon Nexine instantly over any window with ⌘⇧Space.
+                        {t('Install custom tools from the community registry.')}
                       </p>
                     </div>
                   </li>
@@ -121,10 +117,23 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-[var(--nx-fg)]">
-                        Local Filesystem Access
+                        {t('Global Hotkey')}
                       </h3>
                       <p className="text-xs text-[var(--nx-fg-subtle)] mt-0.5">
-                        Process local files securely without uploading.
+                        {t('Summon Nexine instantly over any window with ⌘⇧Space.')}
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3 opacity-60 grayscale transition-all hover:opacity-80">
+                    <div className="mt-0.5 rounded bg-[var(--nx-surface-3)] p-1.5 text-[var(--nx-fg-subtle)]">
+                      <Lock size={14} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-[var(--nx-fg)]">
+                        {t('Local Filesystem Access')}
+                      </h3>
+                      <p className="text-xs text-[var(--nx-fg-subtle)] mt-0.5">
+                        {t('Process local files securely without uploading.')}
                       </p>
                     </div>
                   </li>
@@ -137,29 +146,39 @@ export function HomeView({ onNavigate, onOpenPalette, sections }: HomeViewProps)
                   className="flex w-full items-center justify-center gap-2 rounded-[var(--nx-radius)] bg-[var(--nx-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--nx-primary-hover)] transition-colors"
                 >
                   <Download size={16} />
-                  Download Desktop App
+                  {t('Download Desktop App')}
                 </button>
               </div>
             </div>
           ) : (
             <div className="rounded-xl border border-[var(--nx-border)] bg-[var(--nx-surface)] p-6">
-              <h2 className="mb-4 text-lg font-semibold text-[var(--nx-fg)]">System Status</h2>
+              <h2 className="mb-4 text-lg font-semibold text-[var(--nx-fg)]">
+                {t('System Status')}
+              </h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg bg-[var(--nx-surface-2)] px-4 py-3">
-                  <span className="text-sm font-medium text-[var(--nx-fg)]">Built-in Tools</span>
+                  <span className="text-sm font-medium text-[var(--nx-fg)]">
+                    {t('Built-in Tools')}
+                  </span>
                   <span className="text-sm font-bold text-[var(--nx-primary)]">
                     {allTools.length}
                   </span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-[var(--nx-surface-2)] px-4 py-3">
-                  <span className="text-sm font-medium text-[var(--nx-fg)]">Network Egress</span>
+                  <span className="text-sm font-medium text-[var(--nx-fg)]">
+                    {t('Network Egress')}
+                  </span>
                   <span className="text-sm font-bold text-[var(--nx-warning)]">
-                    Deny-by-default
+                    {t('Deny-by-default')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-[var(--nx-surface-2)] px-4 py-3">
-                  <span className="text-sm font-medium text-[var(--nx-fg)]">App Platform</span>
-                  <span className="text-sm font-bold text-[var(--nx-primary)]">Desktop Native</span>
+                  <span className="text-sm font-medium text-[var(--nx-fg)]">
+                    {t('App Platform')}
+                  </span>
+                  <span className="text-sm font-bold text-[var(--nx-primary)]">
+                    {t('Desktop Native')}
+                  </span>
                 </div>
               </div>
             </div>

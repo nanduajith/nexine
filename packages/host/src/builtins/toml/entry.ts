@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.textarea({ placeholder: 'Input...' });
+    const inp = k.textarea({ placeholder: ctx.t('Input...') });
     const out = k.textarea({ readOnly: true, minHeight: 300 });
     out.classList.add('nx-mono');
     let mode: 'toml2json' | 'json2toml' = 'toml2json';
@@ -19,11 +19,11 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Mode',
+          title: ctx.t('Mode'),
           body: k.segmented(
             [
-              { value: 'toml2json', label: 'TOML to JSON' },
-              { value: 'json2toml', label: 'JSON to TOML' },
+              { value: 'toml2json', label: ctx.t('TOML to JSON') },
+              { value: 'json2toml', label: ctx.t('JSON to TOML') },
             ],
             mode,
             (v) => {
@@ -33,9 +33,9 @@ export default register((ctx) => ({
           ),
         }),
         k.grid2(
-          k.panel({ title: 'Input', body: inp, flush: true }),
+          k.panel({ title: ctx.t('Input'), body: inp, flush: true }),
           k.panel({
-            title: 'Output',
+            title: ctx.t('Output'),
             actions: k.copyButton(() => out.value),
             body: out,
             flush: true,

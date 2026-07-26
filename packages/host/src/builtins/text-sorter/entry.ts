@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.textarea({ placeholder: 'Lines of text...' });
+    const inp = k.textarea({ placeholder: ctx.t('Lines of text...') });
     const out = k.textarea({ readOnly: true, minHeight: 200 });
     let rev = false,
       ded = false;
@@ -15,7 +15,7 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
+          title: ctx.t('Options'),
           body: k.row(
             true,
             k.h(
@@ -45,9 +45,9 @@ export default register((ctx) => ({
           ),
         }),
         k.grid2(
-          k.panel({ title: 'Input', body: inp, flush: true }),
+          k.panel({ title: ctx.t('Input'), body: inp, flush: true }),
           k.panel({
-            title: 'Sorted',
+            title: ctx.t('Sorted'),
             actions: k.copyButton(() => out.value),
             body: out,
             flush: true,

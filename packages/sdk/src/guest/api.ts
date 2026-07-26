@@ -43,6 +43,8 @@ export interface PluginContext {
   /** The permissions actually granted (after host policy resolution). */
   readonly permissions: readonly Permission[];
   readonly host: HostBridge;
+  /** Translation function. */
+  readonly t: (key: string) => string;
 }
 
 /** A live plugin: the runtime calls `mount` once, and `unmount` on teardown. */

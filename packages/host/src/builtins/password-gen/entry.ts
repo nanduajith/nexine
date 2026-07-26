@@ -23,7 +23,7 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
+          title: ctx.t('Options'),
           body: k.stack(
             k.field(
               'Length',
@@ -94,11 +94,11 @@ export default register((ctx) => ({
                 ' @#$',
               ),
             ),
-            k.button('Regenerate', { variant: 'primary', onClick: update }),
+            k.button(ctx.t('Regenerate'), { variant: 'primary', onClick: update }),
           ),
         }),
         k.panel({
-          title: 'Password',
+          title: ctx.t('Password'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

@@ -9,10 +9,14 @@ export default register((ctx) => ({
     let urlSafe = false;
     let input = '';
 
-    const out = k.textarea({ readOnly: true, placeholder: 'Result appears here', minHeight: 240 });
+    const out = k.textarea({
+      readOnly: true,
+      placeholder: ctx.t('Result appears here'),
+      minHeight: 240,
+    });
     const err = k.h('span', { class: 'nx-error' });
     const inputTa = k.textarea({
-      placeholder: 'Text to encode…',
+      placeholder: ctx.t('Text to encode…'),
       minHeight: 240,
       oninput: (v) => {
         input = v;
@@ -35,7 +39,7 @@ export default register((ctx) => ({
       inputTa.placeholder = mode === 'encode' ? 'Text to encode…' : 'Base64 to decode…';
     }
 
-    const outField = k.field('Output', out, { action: k.copyButton(() => out.value) });
+    const outField = k.field(ctx.t('Output'), out, { action: k.copyButton(() => out.value) });
     outField.append(err);
 
     root.append(
@@ -44,8 +48,8 @@ export default register((ctx) => ({
           true,
           k.segmented(
             [
-              { value: 'encode', label: 'Encode' },
-              { value: 'decode', label: 'Decode' },
+              { value: 'encode', label: ctx.t('Encode') },
+              { value: 'decode', label: ctx.t('Decode') },
             ] as const,
             mode,
             (v) => {
@@ -62,7 +66,7 @@ export default register((ctx) => ({
             'URL-safe',
           ),
         ),
-        k.grid2(k.field('Input', inputTa), outField),
+        k.grid2(k.field(ctx.t('Input'), inputTa), outField),
       ),
     );
     update();

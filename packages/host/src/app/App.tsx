@@ -96,13 +96,16 @@ export function App() {
             </main>
           </>
         ) : isHome ? (
-          <main className="flex-1 overflow-y-auto bg-[var(--nx-bg)]">
-            <HomeView
-              onNavigate={navigate}
-              onOpenPalette={() => setPaletteOpen(true)}
-              sections={sections}
-            />
-          </main>
+          <>
+            <TopBar />
+            <main className="flex-1 overflow-y-auto bg-[var(--nx-bg)]">
+              <HomeView
+                onNavigate={navigate}
+                onOpenPalette={() => setPaletteOpen(true)}
+                sections={sections}
+              />
+            </main>
+          </>
         ) : currentTool && ToolView ? (
           <>
             <TopBar tool={currentTool} />

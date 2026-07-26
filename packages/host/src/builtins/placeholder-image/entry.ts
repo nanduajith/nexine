@@ -21,10 +21,15 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Config',
-          body: k.row(true, k.field('Text', txt), k.field('BG', bg), k.field('FG', fg)),
+          title: ctx.t('Config'),
+          body: k.row(
+            true,
+            k.field(ctx.t('Text'), txt),
+            k.field(ctx.t('BG'), bg),
+            k.field(ctx.t('FG'), fg),
+          ),
         }),
-        k.panel({ title: 'Preview', body: k.stack(img, out) }),
+        k.panel({ title: ctx.t('Preview'), body: k.stack(img, out) }),
       ),
     );
     update();

@@ -7,9 +7,9 @@ export default register((ctx) => ({
     const k = createApp(root, ctx);
 
     let algo: HmacAlgorithm = 'SHA-256';
-    const message = k.textarea({ placeholder: 'Message to hash...' });
-    const secret = k.input({ placeholder: 'Secret key' });
-    const out = k.textarea({ readOnly: true, placeholder: 'Result will appear here...' });
+    const message = k.textarea({ placeholder: ctx.t('Message to hash...') });
+    const secret = k.input({ placeholder: ctx.t('Secret key') });
+    const out = k.textarea({ readOnly: true, placeholder: ctx.t('Result will appear here...') });
     out.classList.add('nx-mono');
 
     const update = async () => {
@@ -35,18 +35,18 @@ export default register((ctx) => ({
     root.append(
       k.grid2(
         k.panel({
-          title: 'Input',
+          title: ctx.t('Input'),
           body: k.stack(
-            k.field('Message', message),
-            k.field('Secret', secret),
+            k.field(ctx.t('Message'), message),
+            k.field(ctx.t('Secret'), secret),
             k.field(
               'Algorithm',
               k.segmented(
                 [
-                  { value: 'SHA-1', label: 'SHA-1' },
-                  { value: 'SHA-256', label: 'SHA-256' },
-                  { value: 'SHA-384', label: 'SHA-384' },
-                  { value: 'SHA-512', label: 'SHA-512' },
+                  { value: 'SHA-1', label: ctx.t('SHA-1') },
+                  { value: 'SHA-256', label: ctx.t('SHA-256') },
+                  { value: 'SHA-384', label: ctx.t('SHA-384') },
+                  { value: 'SHA-512', label: ctx.t('SHA-512') },
                 ] as const,
                 algo,
                 (v) => {
@@ -58,7 +58,7 @@ export default register((ctx) => ({
           ),
         }),
         k.panel({
-          title: 'HMAC (Hex)',
+          title: ctx.t('HMAC (Hex)'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

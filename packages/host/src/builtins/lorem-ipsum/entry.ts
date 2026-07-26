@@ -13,7 +13,7 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
+          title: ctx.t('Options'),
           body: k.row(
             true,
             k.field(
@@ -32,9 +32,9 @@ export default register((ctx) => ({
               'Units',
               k.segmented(
                 [
-                  { value: 'paragraphs', label: 'Paragraphs' },
-                  { value: 'sentences', label: 'Sentences' },
-                  { value: 'words', label: 'Words' },
+                  { value: 'paragraphs', label: ctx.t('Paragraphs') },
+                  { value: 'sentences', label: ctx.t('Sentences') },
+                  { value: 'words', label: ctx.t('Words') },
                 ],
                 units,
                 (v) => {
@@ -43,11 +43,11 @@ export default register((ctx) => ({
                 },
               ),
             ),
-            k.button('Regenerate', { variant: 'primary', onClick: update }),
+            k.button(ctx.t('Regenerate'), { variant: 'primary', onClick: update }),
           ),
         }),
         k.panel({
-          title: 'Output',
+          title: ctx.t('Output'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

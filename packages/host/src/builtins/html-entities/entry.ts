@@ -10,7 +10,7 @@ export default register((ctx) => ({
 
     const out = k.textarea({ readOnly: true, minHeight: 240 });
     const inputTa = k.textarea({
-      placeholder: 'HTML/text to escape…',
+      placeholder: ctx.t('HTML/text to escape…'),
       minHeight: 240,
       oninput: (v) => {
         input = v;
@@ -27,8 +27,8 @@ export default register((ctx) => ({
       k.stack(
         k.segmented(
           [
-            { value: 'encode', label: 'Encode' },
-            { value: 'decode', label: 'Decode' },
+            { value: 'encode', label: ctx.t('Encode') },
+            { value: 'decode', label: ctx.t('Decode') },
           ] as const,
           mode,
           (v) => {
@@ -37,8 +37,8 @@ export default register((ctx) => ({
           },
         ),
         k.grid2(
-          k.field('Input', inputTa),
-          k.field('Output', out, { action: k.copyButton(() => out.value) }),
+          k.field(ctx.t('Input'), inputTa),
+          k.field(ctx.t('Output'), out, { action: k.copyButton(() => out.value) }),
         ),
       ),
     );

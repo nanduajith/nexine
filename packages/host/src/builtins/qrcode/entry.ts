@@ -8,7 +8,7 @@ export default register((ctx) => ({
 
     const input = k.textarea({
       minHeight: 300,
-      placeholder: 'Enter text or URL to generate QR code...',
+      placeholder: ctx.t('Enter text or URL to generate QR code...'),
     });
 
     const svgContainer = k.h(
@@ -63,13 +63,13 @@ export default register((ctx) => ({
     root.append(
       k.grid2(
         k.panel({
-          title: 'Data',
+          title: ctx.t('Data'),
           body: input,
           flush: true,
         }),
         k.panel({
-          title: 'QR Code',
-          actions: k.copyButton(() => currentSvg, { label: 'Copy SVG' }),
+          title: ctx.t('QR Code'),
+          actions: k.copyButton(() => currentSvg, { label: ctx.t('Copy SVG') }),
           body: svgContainer,
         }),
       ),

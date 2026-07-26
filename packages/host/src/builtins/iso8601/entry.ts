@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.input({ placeholder: '2024-01-01T12:00:00Z' });
+    const inp = k.input({ placeholder: ctx.t('2024-01-01T12:00:00Z') });
     const out = k.h('div', { class: 'nx-empty', style: 'padding:16px' }, 'Enter ISO');
     const update = () => {
       try {
@@ -18,6 +18,11 @@ export default register((ctx) => ({
       }
     };
     inp.addEventListener('input', update);
-    root.append(k.panel({ title: 'ISO Parser', body: k.stack(k.field('ISO String', inp), out) }));
+    root.append(
+      k.panel({
+        title: ctx.t('ISO Parser'),
+        body: k.stack(k.field(ctx.t('ISO String'), inp), out),
+      }),
+    );
   },
 }));

@@ -13,7 +13,7 @@ export default register((ctx) => ({
     const err = k.h('span', { class: 'nx-error' });
     const paramsHolder = k.h('div');
     const inputTa = k.textarea({
-      placeholder: 'Text or URL to encode…',
+      placeholder: ctx.t('Text or URL to encode…'),
       minHeight: 200,
       oninput: (v) => {
         input = v;
@@ -40,7 +40,7 @@ export default register((ctx) => ({
       if (params.length > 0) {
         paramsHolder.append(
           k.panel({
-            title: 'Query parameters',
+            title: ctx.t('Query parameters'),
             description: `${params.length} detected`,
             flush: true,
             body: k.table(
@@ -54,7 +54,7 @@ export default register((ctx) => ({
       }
     }
 
-    const outField = k.field('Output', out, { action: k.copyButton(() => out.value) });
+    const outField = k.field(ctx.t('Output'), out, { action: k.copyButton(() => out.value) });
     outField.append(err);
 
     root.append(
@@ -63,8 +63,8 @@ export default register((ctx) => ({
           true,
           k.segmented(
             [
-              { value: 'encode', label: 'Encode' },
-              { value: 'decode', label: 'Decode' },
+              { value: 'encode', label: ctx.t('Encode') },
+              { value: 'decode', label: ctx.t('Decode') },
             ] as const,
             mode,
             (v) => {
@@ -81,7 +81,7 @@ export default register((ctx) => ({
             'Component (encodeURIComponent)',
           ),
         ),
-        k.grid2(k.field('Input', inputTa), outField),
+        k.grid2(k.field(ctx.t('Input'), inputTa), outField),
         paramsHolder,
       ),
     );

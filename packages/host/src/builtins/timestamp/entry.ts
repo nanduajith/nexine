@@ -19,7 +19,7 @@ export default register((ctx) => ({
     const err = k.h('span', { class: 'nx-error' });
     const tableHolder = k.h('div');
     const inputEl = k.input({
-      placeholder: 'Unix seconds / ms or ISO 8601 — leave empty for now',
+      placeholder: ctx.t('Unix seconds / ms or ISO 8601 — leave empty for now'),
       oninput: (v) => {
         input = v;
         update();
@@ -53,7 +53,7 @@ export default register((ctx) => ({
       );
     }
 
-    const now = k.button('Now', {
+    const now = k.button(ctx.t('Now'), {
       variant: 'secondary',
       small: true,
       onClick: () => {
@@ -63,7 +63,7 @@ export default register((ctx) => ({
       },
     });
 
-    const field = k.field('Timestamp or date', inputEl, { action: now });
+    const field = k.field(ctx.t('Timestamp or date'), inputEl, { action: now });
     field.append(err);
     root.append(k.stack(field, tableHolder));
     update();

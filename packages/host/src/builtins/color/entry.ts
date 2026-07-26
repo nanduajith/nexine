@@ -16,7 +16,7 @@ export default register((ctx) => ({
 
     const field = k.input({
       value: input,
-      placeholder: '#7c8cff, rgb(124 140 255), hsl(232 100% 74%)',
+      placeholder: ctx.t('#7c8cff, rgb(124 140 255), hsl(232 100% 74%)'),
       oninput: (v) => {
         input = v;
         update();
@@ -60,10 +60,10 @@ export default register((ctx) => ({
 
     root.append(
       k.stack(
-        k.field('Color', field, { action: k.copyButton(() => input) }),
+        k.field(ctx.t('Color'), field, { action: k.copyButton(() => input) }),
         error,
         swatch,
-        k.panel({ title: 'Conversions', body: outputs, flush: true }),
+        k.panel({ title: ctx.t('Conversions'), body: outputs, flush: true }),
       ),
     );
     update();

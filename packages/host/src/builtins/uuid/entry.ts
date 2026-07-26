@@ -18,9 +18,9 @@ export default register((ctx) => ({
           false,
           k.segmented(
             [
-              { value: '1', label: '1' },
-              { value: '5', label: '5' },
-              { value: '10', label: '10' },
+              { value: '1', label: ctx.t('1') },
+              { value: '5', label: ctx.t('5') },
+              { value: '10', label: ctx.t('10') },
             ] as const,
             count,
             (v) => {
@@ -28,9 +28,11 @@ export default register((ctx) => ({
               generate();
             },
           ),
-          k.button('Regenerate', { variant: 'primary', small: true, onClick: generate }),
+          k.button(ctx.t('Regenerate'), { variant: 'primary', small: true, onClick: generate }),
         ),
-        k.field('UUID v4', out, { action: k.copyButton(() => out.value, { label: 'Copy all' }) }),
+        k.field(ctx.t('UUID v4'), out, {
+          action: k.copyButton(() => out.value, { label: ctx.t('Copy all') }),
+        }),
       ),
     );
     generate();

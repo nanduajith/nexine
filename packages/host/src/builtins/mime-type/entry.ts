@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.input({ placeholder: '.json or application/json' });
+    const inp = k.input({ placeholder: ctx.t('.json or application/json') });
     const out = k.h('div', { class: 'nx-empty', style: 'padding:16px' }, 'Result');
     const update = () => {
       if (!inp.value) {
@@ -15,7 +15,10 @@ export default register((ctx) => ({
     };
     inp.addEventListener('input', update);
     root.append(
-      k.panel({ title: 'MIME Lookup', body: k.stack(k.field('Extension or MIME Type', inp), out) }),
+      k.panel({
+        title: ctx.t('MIME Lookup'),
+        body: k.stack(k.field(ctx.t('Extension or MIME Type'), inp), out),
+      }),
     );
   },
 }));

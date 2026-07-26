@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.input({ placeholder: '2024-01-01' });
+    const inp = k.input({ placeholder: ctx.t('2024-01-01') });
     const amt = k.h('input', { type: 'number', value: '1', class: 'nx-input' }) as HTMLInputElement;
     let unit: 'days' | 'months' | 'years' = 'days';
     let op: 'add' | 'sub' = 'add';
@@ -21,17 +21,17 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Config',
+          title: ctx.t('Config'),
           body: k.stack(
-            k.field('Date', inp),
+            k.field(ctx.t('Date'), inp),
             k.row(
               true,
               k.field(
                 'Operation',
                 k.segmented(
                   [
-                    { value: 'add', label: 'Add' },
-                    { value: 'sub', label: 'Subtract' },
+                    { value: 'add', label: ctx.t('Add') },
+                    { value: 'sub', label: ctx.t('Subtract') },
                   ],
                   op,
                   (v) => {
@@ -40,14 +40,14 @@ export default register((ctx) => ({
                   },
                 ),
               ),
-              k.field('Amount', amt),
+              k.field(ctx.t('Amount'), amt),
               k.field(
                 'Unit',
                 k.segmented(
                   [
-                    { value: 'days', label: 'Days' },
-                    { value: 'months', label: 'Months' },
-                    { value: 'years', label: 'Years' },
+                    { value: 'days', label: ctx.t('Days') },
+                    { value: 'months', label: ctx.t('Months') },
+                    { value: 'years', label: ctx.t('Years') },
                   ],
                   unit,
                   (v) => {
@@ -59,7 +59,7 @@ export default register((ctx) => ({
             ),
           ),
         }),
-        k.panel({ title: 'Result', body: out, flush: true }),
+        k.panel({ title: ctx.t('Result'), body: out, flush: true }),
       ),
     );
   },

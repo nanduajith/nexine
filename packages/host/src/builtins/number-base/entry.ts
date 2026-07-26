@@ -7,14 +7,14 @@ export default register((ctx) => ({
     const k = createApp(root, ctx);
     let fromBase: Base = 10;
 
-    const input = k.input({ placeholder: 'Enter a number...' });
+    const input = k.input({ placeholder: ctx.t('Enter a number...') });
     input.classList.add('nx-mono');
 
     const bases: { label: string; value: Base; prefix: string }[] = [
-      { label: 'Binary (Base 2)', value: 2, prefix: '0b' },
-      { label: 'Octal (Base 8)', value: 8, prefix: '0o' },
-      { label: 'Decimal (Base 10)', value: 10, prefix: '' },
-      { label: 'Hexadecimal (Base 16)', value: 16, prefix: '0x' },
+      { label: ctx.t('Binary (Base 2)'), value: 2, prefix: '0b' },
+      { label: ctx.t('Octal (Base 8)'), value: 8, prefix: '0o' },
+      { label: ctx.t('Decimal (Base 10)'), value: 10, prefix: '' },
+      { label: ctx.t('Hexadecimal (Base 16)'), value: 16, prefix: '0x' },
     ];
 
     const outputMap = new Map<Base, { container: HTMLElement; setValue: (val: string) => void }>();
@@ -81,12 +81,12 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Input',
+          title: ctx.t('Input'),
           body: k.stack(
             k.row(
               false,
-              k.h('div', { style: 'flex:1' }, k.field('Value', input)),
-              k.h('div', { style: 'width:200px' }, k.field('From Base', baseSelect)),
+              k.h('div', { style: 'flex:1' }, k.field(ctx.t('Value'), input)),
+              k.h('div', { style: 'width:200px' }, k.field(ctx.t('From Base'), baseSelect)),
             ),
             errorNode,
           ),
