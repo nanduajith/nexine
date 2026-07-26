@@ -133,6 +133,14 @@ export interface RpcHostHandle {
 /**
  * Wire the host end of the channel: send `init`, then broker every request. The
  * guest sends `nx:ready` first; we reply with the manifest and granted set.
+ *
+ * @remarks All messages over this port are structured-cloneable (plain objects,
+ * strings, numbers, booleans, null/undefined, arrays). No functions, DOM nodes,
+ * or class instances cross the boundary. This is enforced by the `MessageChannel`
+ * (the browser throws `DataCloneError` on non-cloneable values) and by the typed
+ * protocol (`GuestToHostMessage` / `HostToGuestMessage`). The guest runs at an
+ * opaque origin and may be served from a different scheme (e.g. the Tauri custom
+ * protocol) — readable `postMessage` origins are never trusted.
  */
 export function attachRpcHost(options: {
   port: MessagePort;

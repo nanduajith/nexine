@@ -2,7 +2,7 @@ import { envToJson, jsonToEnv } from '@nexine/tool-dotenv';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let mode: 'env2json' | 'json2env' = 'env2json';

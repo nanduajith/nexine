@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 
 const INDENT: Record<string, number | '\t'> = { '2': 2, '4': 4, tab: '\t' };
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let mode: 'beautify' | 'minify' = 'beautify';

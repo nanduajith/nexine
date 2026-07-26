@@ -1,29 +1,32 @@
 import { createTrustStore } from '@nexine/packaging';
-import type { PackageSigner, PermissionResolution } from '@nexine/plugin-runtime';
-import { inspectPackage, inspectPlugin, loadPackage, loadPlugin } from '@nexine/plugin-runtime';
+import type { PackageSigner, PermissionResolution, PluginPolicy } from '@nexine/plugin-runtime';
+import { inspectPackage, loadPackage, resolvePermissions } from '@nexine/plugin-runtime';
+import { isNetworkPermission, type PluginManifest } from '@nexine/sdk';
 import { Badge, Button, Panel } from '@nexine/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useGovernance } from '../../app/hooks/useGovernance';
 import { usePreferences } from '../../app/hooks/usePreferences';
+import { pluginAdapter } from '../../infrastructure/platform/plugin-adapter';
 import {
   governanceStore,
   type GovernanceState,
 } from '../../infrastructure/storage/governance-store';
 
-import type { BuiltinPlugin } from './builtin-plugins';
 import type { PluginToolSource } from './plugin-source';
 import { Notice, PermissionList, shortKey, SignerBadge } from './ui';
 
-/**
- * URL of the static plugin sandbox document. Every plugin iframe points here (a
- * real same-origin document, not srcdoc/blob) so it is governed by its own CSP and
- * does not inherit the app's strict `script-src 'self'`. Resolving against
- * `document.baseURI` keeps it correct under any deploy base (root, `/nexine/app/`, …).
- */
-const SANDBOX_DOC_URL = new URL('sandbox.html', document.baseURI).href;
+/** Build the sandbox document URL, using the custom protocol on desktop. */
+function sandboxUrlFor(manifest: PluginManifest, policy: PluginPolicy): string {
+  if (!pluginAdapter.sandboxDocUrlFor) {
+    return new URL('sandbox.html', document.baseURI).href;
+  }
+  const resolution = resolvePermissions(manifest, policy);
+  const grantedHosts = resolution.granted.filter(isNetworkPermission).flatMap((p) => p.hosts);
+  return pluginAdapter.sandboxDocUrlFor(manifest.id, grantedHosts);
+}
 
-/** Normalised inspection outcome, unified across signed packages and examples. */
+/** Normalised inspection outcome for a signed package. */
 type Inspection =
   | { readonly status: 'loading' }
   | { readonly status: 'invalid'; readonly message: string }
@@ -34,21 +37,6 @@ type Inspection =
       readonly resolution: PermissionResolution;
       readonly signer?: PackageSigner;
     };
-
-function inspectBuiltin(plugin: BuiltinPlugin, policy: GovernanceState['policy']): Inspection {
-  const result = inspectPlugin({ manifest: plugin.manifest, policy });
-  if (!result.ok) {
-    return result.issues
-      ? {
-          status: 'invalid',
-          message: result.issues
-            .map((issue) => `${issue.path || 'manifest'}: ${issue.message}`)
-            .join('; '),
-        }
-      : { status: 'blocked', message: result.error };
-  }
-  return { status: 'ok', resolution: result.resolution };
-}
 
 function goToSettings() {
   window.location.hash = '#/settings';
@@ -82,11 +70,14 @@ function SandboxMount({
       const iframe = iframeRef.current;
       if (!iframe || event.source !== iframe.contentWindow) return;
       const data = event.data as { type?: string; height?: number } | null;
-      if (data?.type === 'nx:theme-request') {
+      if (!data?.type) return;
+      if (data.type === 'nx:theme-request') {
         iframe.contentWindow?.postMessage({ type: 'nx:theme', theme: themeRef.current }, '*');
-      } else if (data?.type === 'nx:height' && typeof data.height === 'number') {
+      } else if (data.type === 'nx:height' && typeof data.height === 'number') {
         iframe.style.height = `${Math.max(data.height, 120)}px`;
       }
+      // Any other message type from the iframe is silently ignored — the RPC
+      // channel is the only other communication path (over the MessageChannel port).
     };
     window.addEventListener('message', onMessage);
 
@@ -95,33 +86,13 @@ function SandboxMount({
       containerRef.current?.appendChild(iframe);
     };
 
-    if (source.kind === 'builtin') {
-      const result = loadPlugin({
-        manifest: source.plugin.manifest,
-        pluginSource: source.plugin.source,
-        sandboxDocUrl: SANDBOX_DOC_URL,
-        policy: governance.policy,
-        onFatal: setFatal,
-      });
-      if (!result.ok) {
-        setFatal(result.error);
-        return () => window.removeEventListener('message', onMessage);
-      }
-      mount(result.sandbox.iframe);
-      return () => {
-        window.removeEventListener('message', onMessage);
-        iframeRef.current = null;
-        result.sandbox.dispose();
-      };
-    }
-
     // Signed package: re-verify on mount and re-enforce the trust requirement.
     let disposed = false;
     let cleanup: (() => void) | undefined;
     void loadPackage({
       package: source.record.package,
       trustStore,
-      sandboxDocUrl: SANDBOX_DOC_URL,
+      sandboxDocUrl: sandboxUrlFor(source.manifest, governance.policy),
       policy: governance.policy,
       onFatal: setFatal,
     }).then((result) => {
@@ -246,10 +217,6 @@ export function PluginRunView({ source }: { source: PluginToolSource }) {
   const [inspection, setInspection] = useState<Inspection>({ status: 'loading' });
 
   useEffect(() => {
-    if (source.kind === 'builtin') {
-      setInspection(inspectBuiltin(source.plugin, governance.policy));
-      return;
-    }
     let stale = false;
     setInspection({ status: 'loading' });
     void inspectPackage({
@@ -338,11 +305,7 @@ export function PluginRunView({ source }: { source: PluginToolSource }) {
   }
 
   const { resolution, signer } = inspection;
-  const blockedByTrust =
-    source.kind === 'package' &&
-    governance.trust.requireTrusted &&
-    signer !== undefined &&
-    !signer.trusted;
+  const blockedByTrust = governance.trust.requireTrusted && signer !== undefined && !signer.trusted;
 
   const posture = (
     <div className="flex flex-wrap items-center gap-2">

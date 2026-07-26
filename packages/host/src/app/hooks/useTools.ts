@@ -1,10 +1,9 @@
 import { createToolRegistry, type ToolCategory, type ToolRegistry } from '@nexine/core';
-import type { PluginManifest } from '@nexine/sdk';
 import type { ToolModule } from '@nexine/ui';
 import { useMemo } from 'react';
 
-import { BUILTIN_PLUGINS } from '../../features/plugins/builtin-plugins';
-import { toPluginToolModule } from '../../features/plugins/plugin-tool';
+import { BUILTIN_TOOLS } from '../../builtins';
+import { pluginAdapter } from '../../infrastructure/platform/plugin-adapter';
 
 import { useGovernance } from './useGovernance';
 
@@ -19,10 +18,11 @@ export interface ToolSections {
 }
 
 /**
- * Single source of truth for what tools exist right now. Every tool — builtin or
- * side-loaded — is a sandboxed plugin, assembled here into one registry: builtins
- * (filtered by the user's removed set) plus installed packages. Builtin ids win on
- * an (unexpected) collision, so an installed package can never shadow a builtin.
+ * Single source of truth for what tools exist right now, assembled into one
+ * registry: first-party builtins (rendered in-process, filtered by the user's
+ * removed set) plus any installed third-party plugins (desktop only — the web
+ * adapter contributes none). Builtin ids win on an (unexpected) collision, so an
+ * installed plugin can never shadow a builtin.
  */
 export function useTools(): ToolSections {
   const governance = useGovernance();
@@ -30,16 +30,8 @@ export function useTools(): ToolSections {
   return useMemo(() => {
     const removed = new Set(governance.disabledBuiltins);
 
-    const builtinTools = BUILTIN_PLUGINS.filter((plugin) => !removed.has(plugin.manifest.id)).map(
-      (plugin) => toPluginToolModule({ kind: 'builtin', plugin, manifest: plugin.manifest }),
-    );
-    const installedTools = Object.values(governance.installed).map((record) =>
-      toPluginToolModule({
-        kind: 'package',
-        record,
-        manifest: record.package.manifest as PluginManifest,
-      }),
-    );
+    const builtinTools = BUILTIN_TOOLS.filter((tool) => !removed.has(tool.id));
+    const installedTools = pluginAdapter.installedToolModules(governance);
 
     const seen = new Set<string>();
     const allTools: ToolModule[] = [];
@@ -51,5 +43,5 @@ export function useTools(): ToolSections {
 
     const registry = createToolRegistry<ToolModule>(allTools);
     return { registry, categoryGroups: registry.byCategory(), allTools };
-  }, [governance.disabledBuiltins, governance.installed]);
+  }, [governance]);
 }

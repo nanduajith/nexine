@@ -1,4 +1,5 @@
-import { dirname, join } from 'node:path';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { build } from 'esbuild';
@@ -77,6 +78,20 @@ export function sandboxPlugin(): Plugin {
       minify = config.command === 'build';
     },
     configureServer(server) {
+      // In desktop dev mode, the Tauri custom protocol handler reads the guest script from disk.
+      // Vite normally serves it only from memory via middleware, so we must write it out once.
+      if (process.env['NEXINE_TARGET'] === 'desktop') {
+        void bundleGuest(false).then((js) => {
+          try {
+            const distDir = resolve(HERE, '../../dist');
+            mkdirSync(distDir, { recursive: true });
+            writeFileSync(join(distDir, GUEST_FILE), js);
+          } catch (e) {
+            console.error('Failed to pre-generate dev sandbox guest:', e);
+          }
+        });
+      }
+
       server.middlewares.use((req, res, next) => {
         const path = (req.url ?? '').split('?')[0] ?? '';
         if (path.endsWith(`/${SANDBOX_FILE}`) || path === `/${SANDBOX_FILE}`) {

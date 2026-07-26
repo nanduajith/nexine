@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 
 const PRESETS = ['*/15 * * * *', '0 9 * * mon-fri', '0 0 1 * *', '@daily', '@hourly'];
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let input = '*/15 * * * *';

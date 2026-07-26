@@ -2,7 +2,7 @@ import { hexToText, textToHex } from '@nexine/tool-hex';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let mode: 'encode' | 'decode' = 'encode';

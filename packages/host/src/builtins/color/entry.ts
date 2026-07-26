@@ -2,7 +2,7 @@ import { parseColor } from '@nexine/tool-color';
 
 import { createApp, register } from '../_kit';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let input = '#7c8cff';

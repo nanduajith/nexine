@@ -121,9 +121,16 @@ export function runNexineGuest(): void {
     await instance.mount(root);
   }
 
-  window.addEventListener('message', (event: MessageEvent) => {
+  // Accept the host's MessageChannel port exactly once, from window.parent only.
+  // event.origin is deliberately not checked — the guest runs at an opaque origin
+  // (sandbox="allow-scripts"), so its origin is the string "null" and the parent's
+  // origin may vary (custom protocol, localhost, production). The private
+  // MessageChannel is the trusted link, not the origin string.
+  window.addEventListener('message', function onPort(event: MessageEvent) {
+    if (event.source !== window.parent) return;
     const data = event.data as { type?: string } | null;
     if (!data || data.type !== 'nx:port' || !event.ports[0]) return;
+    window.removeEventListener('message', onPort);
     const port = event.ports[0];
     channel = port;
     port.onmessage = (ev: MessageEvent<HostToGuestMessage>) => {

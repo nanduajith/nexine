@@ -47,3 +47,68 @@ jobs:
             echo "::error::Production build is missing connect-src 'none' — the no-egress guarantee is broken."
             exit 1
           fi
+
+      - name: Verify unsafe-eval never appears in the production build
+        run: |
+          if grep -RIl "unsafe-eval" packages/host/dist --include='*.js' --include='*.html' --include='*.css' | grep -q .; then
+            echo "::error::Production build contains 'unsafe-eval'."
+            exit 1
+          fi
+          echo "✓ No unsafe-eval."
+
+      - name: Verify the web build ships NO third-party plugin machinery
+        # The web tier is first-party tools only. The plugin runtime, packaging,
+        # sandbox document and guest runtime are desktop-only and must never enter
+        # the web bundle (see plugin-adapter swap in vite.config.ts).
+        run: |
+          dist=packages/host/dist
+          fail=0
+          for f in "$dist/sandbox.html" "$dist/plugin-guest.js"; do
+            if [ -e "$f" ]; then
+              echo "::error::Web build unexpectedly emitted $f (plugin sandbox artifact)."
+              fail=1
+            fi
+          done
+          if ls "$dist"/assets/plugin-guest*.js >/dev/null 2>&1; then
+            echo "::error::Web build unexpectedly emitted a plugin-guest chunk."
+            fail=1
+          fi
+          # String literals unique to the plugin subsystem — none should survive in shipped JS.
+          for sym in "nx:init" "nx:ready" "nx:request" "definePlugin" "createPluginSandbox" "runNexineGuest" "attachRpcHost" ".nexpkg"; do
+            if grep -RIl -- "$sym" "$dist"/assets --include='*.js' 2>/dev/null | grep -q .; then
+              echo "::error::Web bundle contains plugin-subsystem symbol '$sym'."
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then exit 1; fi
+          echo "✓ Web build is free of third-party plugin machinery."
+
+  test-desktop-protocol:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The Rust crate embeds the frontend via `tauri::generate_context!()`, so the
+      # desktop frontend (frontendDist) must exist before the crate can compile.
+      - name: Build desktop frontend
+        run: pnpm build:desktop
+
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev patchelf libappindicator3-dev libsecret-1-dev libdbus-1-dev
+      - name: Run Rust integration tests
+        run: xvfb-run --auto-servernum cargo test --manifest-path src-tauri/Cargo.toml

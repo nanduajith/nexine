@@ -55,7 +55,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build the app for the Pages subpath
+        env:
+          NEXINE_TARGET: web
         run: pnpm build # NEXINE_BASE (env, above) prefixes assets with /nexine/app/
+
+      - name: Generate test coverage badge
+        run: |
+          pnpm test:coverage
+          pnpm exec make-coverage-badge
 
       - name: Verify the no-egress CSP is present in the demo build
         run: |
@@ -72,6 +79,7 @@ jobs:
           mkdir -p _site/app
           cp -r site/. _site/
           cp -r packages/host/dist/. _site/app/
+          cp coverage/badge.svg _site/coverage.svg || true
 
       - uses: actions/configure-pages@v5
       - name: Upload the Pages artifact

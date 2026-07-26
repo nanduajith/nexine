@@ -6,7 +6,7 @@ function claimTime(value: unknown): string | null {
   return typeof value === 'number' ? new Date(value * 1000).toLocaleString() : null;
 }
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let token = '';

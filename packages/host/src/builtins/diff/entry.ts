@@ -5,7 +5,7 @@ import { createApp, register } from '../_kit';
 const ROW_STYLE =
   'display:grid;grid-template-columns:3ch 3ch 1ch 1fr;gap:8px;padding:1px 12px;font-family:var(--nx-mono);font-size:12.5px;white-space:pre-wrap;word-break:break-word';
 
-register((ctx) => ({
+export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let left = 'the quick brown fox\njumps over\nthe lazy dog';
