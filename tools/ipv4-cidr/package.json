@@ -1,0 +1,15 @@
+{
+  "name": "@nexine/tool-ipv4-cidr",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/transform.ts",
+  "types": "./src/transform.ts",
+  "exports": {
+    ".": "./src/transform.ts"
+  },
+  "dependencies": {
+    "@nexine/core": "workspace:*",
+    "ipaddr.js": "^2.4.0"
+  }
+}

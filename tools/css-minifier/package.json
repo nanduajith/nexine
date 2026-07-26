@@ -1,0 +1,18 @@
+{
+  "name": "@nexine/tool-css-minifier",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/transform.ts",
+  "types": "./src/transform.ts",
+  "exports": {
+    ".": "./src/transform.ts"
+  },
+  "dependencies": {
+    "@nexine/core": "workspace:*",
+    "clean-css": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/clean-css": "^4.2.11"
+  }
+}

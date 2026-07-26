@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin, type PluginOption } from 'vite';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Imported by relative path (not '@nexine/core') so Vite's esbuild config loader
@@ -65,6 +66,7 @@ export default defineConfig(({ command }) => {
     tsconfigPaths(),
     react(),
     tailwindcss(),
+    nodePolyfills(),
     cspPlugin(isDev),
     pluginAdapterSwap(),
   ];

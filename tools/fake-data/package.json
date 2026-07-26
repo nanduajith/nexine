@@ -1,0 +1,15 @@
+{
+  "name": "@nexine/tool-fake-data",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/transform.ts",
+  "types": "./src/transform.ts",
+  "exports": {
+    ".": "./src/transform.ts"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.5.0",
+    "@nexine/core": "workspace:*"
+  }
+}

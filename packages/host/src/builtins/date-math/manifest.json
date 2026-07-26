@@ -1,0 +1,12 @@
+{
+  "id": "date-math",
+  "name": "Date Math",
+  "description": "Add or subtract dates.",
+  "version": "1.0.0",
+  "category": "time",
+  "keywords": [],
+  "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg>",
+  "publisher": "nexine",
+  "homepage": "https://github.com/nanduajith/nexine",
+  "license": "MIT"
+}
