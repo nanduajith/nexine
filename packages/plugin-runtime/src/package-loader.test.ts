@@ -96,7 +96,7 @@ describe('inspectPackage', () => {
 describe('loadPackage', () => {
   it('refuses to build a sandbox for a tampered package', async () => {
     const pkg = { ...(await makePackage()), code: `${CODE}// tampered` };
-    const result = await loadPackage({ package: pkg });
+    const result = await loadPackage({ package: pkg, sandboxDocUrl: '/sandbox.html' });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.stage).toBe('signature');

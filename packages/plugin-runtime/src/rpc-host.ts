@@ -138,10 +138,12 @@ export function attachRpcHost(options: {
   port: MessagePort;
   manifest: PluginManifest;
   granted: readonly Permission[];
+  /** The plugin's source, handed to the guest in `nx:init` to run as a blob script. */
+  pluginSource: string;
   services: HostServices;
   onFatal?: (message: string) => void;
 }): RpcHostHandle {
-  const { port, manifest, granted, services, onFatal } = options;
+  const { port, manifest, granted, pluginSource, services, onFatal } = options;
 
   const listener = (event: MessageEvent<GuestToHostMessage>): void => {
     const message = event.data;
@@ -151,6 +153,7 @@ export function attachRpcHost(options: {
         protocol: RPC_PROTOCOL_VERSION,
         manifest,
         grantedPermissions: granted,
+        pluginSource,
       };
       port.postMessage(init);
       return;

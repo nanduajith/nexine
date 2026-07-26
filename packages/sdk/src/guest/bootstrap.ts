@@ -1,44 +1,37 @@
 import type { PluginManifest } from '../manifest';
 import type { Permission } from '../permissions';
+import type { GuestToHostMessage, HostToGuestMessage } from '../rpc/protocol';
+import { RPC_PROTOCOL_VERSION } from '../rpc/protocol';
 
 import type { ClipboardApi, HostBridge, PluginContext, PluginDefinition, StorageApi } from './api';
 
 /**
  * The guest driver that runs *inside* a plugin's sandboxed, opaque-origin iframe.
  *
- * It cannot be imported there (an opaque origin can't load the host's modules),
- * so the host serializes this exact function with `Function.prototype.toString()`
- * and inlines it into the iframe under a CSP nonce. That makes this the single
- * source of truth for the guest side of the protocol — there is no second copy.
+ * The iframe is a real, static document (`sandbox.html`) served from the app
+ * origin. Because it is fetched over a normal scheme — not `srcdoc`/`blob:`/`data:`
+ * — it does NOT inherit the app's strict `script-src 'self'`; it is governed only
+ * by its own CSP. That is what lets this bundled guest run (as a `'self'` module)
+ * and, in turn, execute the untrusted plugin as a `blob:` script.
  *
- * The plugin's own code is delivered as a *sibling* nonce-authorized `<script>`
- * that registers its definition by calling the `nexine.definePlugin()` global
- * this bootstrap installs. This avoids any dynamic `import()` (which a bundler
- * would rewrite, and which the strict per-plugin CSP would otherwise force us to
- * enable `unsafe-eval` for).
- *
- * CONSTRAINT: the body must reference only its parameter, browser globals and
- * inline literals — never a module-scope binding — or the stringified copy would
- * capture nothing and break. Type-only imports above are erased at compile time,
- * so they are safe.
+ * Flow: the host opens a private `MessageChannel` (`nx:port`). The guest replies
+ * `nx:ready`; the host answers `nx:init` with the manifest, the granted
+ * permissions, and the plugin's source. The guest then runs that source as a
+ * `blob:` `<script>` (which calls `nexine.definePlugin`), builds the capability
+ * bridge for exactly what was granted, and mounts the plugin.
  */
-export interface GuestBootstrapConfig {
-  /** The host-validated manifest (trusted; already fixed the iframe's CSP). */
-  readonly manifest: PluginManifest;
-  /** Id of the element the plugin mounts into. */
-  readonly rootId: string;
-}
 
-export function nexineGuestBootstrap(config: GuestBootstrapConfig): void {
-  const PROTOCOL = 1;
-  const { manifest, rootId } = config;
+/** The element every plugin mounts into; present in `sandbox.html`. */
+const ROOT_ID = 'nx-plugin-root';
 
+export function runNexineGuest(): void {
   let channel: MessagePort | null = null;
   let nextId = 1;
   let registered: PluginDefinition | null = null;
+  let manifest: PluginManifest | null = null;
   const pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
 
-  // The registration API the plugin's sibling script calls.
+  // The registration API the plugin's own (blob) script calls.
   (window as unknown as { nexine: { definePlugin: (def: PluginDefinition) => void } }).nexine = {
     definePlugin: (def) => {
       registered = def;
@@ -47,7 +40,8 @@ export function nexineGuestBootstrap(config: GuestBootstrapConfig): void {
 
   function fatal(error: unknown): void {
     const message = error instanceof Error ? error.message : String(error);
-    channel?.postMessage({ type: 'nx:fatal', message });
+    const msg: GuestToHostMessage = { type: 'nx:fatal', message };
+    channel?.postMessage(msg);
   }
 
   function request(method: string, params: Record<string, unknown>): Promise<unknown> {
@@ -90,15 +84,39 @@ export function nexineGuestBootstrap(config: GuestBootstrapConfig): void {
           : denied('clipboard')) as Promise<void>,
     };
     const host: HostBridge = { storage, clipboard };
-    return { manifest, permissions: granted, host };
+    // `manifest` is set from `nx:init` before boot runs.
+    return { manifest: manifest as PluginManifest, permissions: granted, host };
   }
 
-  async function boot(granted: readonly Permission[]): Promise<void> {
+  /**
+   * Execute the plugin's source as a `blob:` classic script. The sandbox document's
+   * CSP permits `script-src blob:`, so this runs *inside* the opaque sandbox and
+   * only as script — never as markup. It calls `nexine.definePlugin` on load.
+   */
+  function runPluginSource(source: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+      const script = document.createElement('script');
+      script.addEventListener('load', () => {
+        URL.revokeObjectURL(url);
+        resolve();
+      });
+      script.addEventListener('error', () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('plugin source failed to load'));
+      });
+      script.src = url;
+      document.body.appendChild(script);
+    });
+  }
+
+  async function boot(source: string, granted: readonly Permission[]): Promise<void> {
+    await runPluginSource(source);
     if (!registered || typeof registered.setup !== 'function') {
       throw new Error('plugin did not register a definition via nexine.definePlugin()');
     }
     const instance = await registered.setup(buildContext(granted));
-    const root = document.getElementById(rootId);
+    const root = document.getElementById(ROOT_ID);
     if (!root) throw new Error('plugin root element missing');
     await instance.mount(root);
   }
@@ -108,18 +126,11 @@ export function nexineGuestBootstrap(config: GuestBootstrapConfig): void {
     if (!data || data.type !== 'nx:port' || !event.ports[0]) return;
     const port = event.ports[0];
     channel = port;
-    port.onmessage = (ev: MessageEvent) => {
-      const message = ev.data as
-        | { type: 'nx:init'; grantedPermissions: Permission[] }
-        | {
-            type: 'nx:response';
-            id: number;
-            result:
-              | { ok: true; value: unknown }
-              | { ok: false; error: { code: string; message: string } };
-          };
+    port.onmessage = (ev: MessageEvent<HostToGuestMessage>) => {
+      const message = ev.data;
       if (message.type === 'nx:init') {
-        void boot(message.grantedPermissions).catch(fatal);
+        manifest = message.manifest;
+        void boot(message.pluginSource, message.grantedPermissions).catch(fatal);
       } else if (message.type === 'nx:response') {
         const entry = pending.get(message.id);
         if (!entry) return;
@@ -129,6 +140,7 @@ export function nexineGuestBootstrap(config: GuestBootstrapConfig): void {
           entry.reject(new Error(`${message.result.error.code}: ${message.result.error.message}`));
       }
     };
-    port.postMessage({ type: 'nx:ready', protocol: PROTOCOL });
+    const ready: GuestToHostMessage = { type: 'nx:ready', protocol: RPC_PROTOCOL_VERSION };
+    port.postMessage(ready);
   });
 }

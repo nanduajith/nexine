@@ -66,19 +66,23 @@ only difference is that a builtin's source ships inside the app (see
 [architecture.md](architecture.md)). So the guarantees below apply uniformly. Untrusted code is
 isolated by construction rather than by trust:
 
-1. **Opaque-origin iframe.** Each plugin runs in a `sandbox="allow-scripts"` iframe with **no**
-   `allow-same-origin`, so it executes at an opaque origin. It cannot read the host's DOM, cookies,
-   `localStorage`, or preferences — proven by the sandbox self-test (the plugin cannot even read the
-   parent's `location`).
-2. **Per-plugin CSP is the network control.** The host computes a Content-Security-Policy for each
-   plugin's iframe from its _granted_ permissions
-   ([`buildPluginCsp`](../packages/plugin-runtime/src/plugin-csp.ts)). A plugin with no `network`
-   grant gets `connect-src 'none'` — the browser physically blocks every request it attempts. A
-   granted plugin gets `connect-src` limited to the exact declared hosts. Policy narrows this
-   further: an org can require an explicit allow-list (network is denied unless a host is named) and
-   grant hosts globally or to a single plugin — see [governance.md](governance.md#controlling-egress).
-   Crucially, the **host is never a network proxy**: it cannot leak the app-wide no-egress guarantee,
-   because the app document itself still ships `connect-src 'none'`.
+1. **Opaque-origin iframe over a real sandbox document.** Each plugin runs in a
+   `sandbox="allow-scripts"` iframe with **no** `allow-same-origin`, so it executes at an opaque
+   origin. It cannot read the host's DOM, cookies, `localStorage`, or preferences — proven by the
+   sandbox self-test (the plugin cannot even read the parent's `location`). The iframe is pointed at
+   a real, same-origin **`sandbox.html`** document — deliberately _not_ a `srcdoc`/`blob:`/`data:`
+   document. That matters: a local-scheme document _inherits_ the embedder's CSP, which would subject
+   the sandbox to the app's strict `script-src 'self'` and silently prevent the guest from running.
+   A real-scheme document is governed **only by its own CSP**
+   ([`buildSandboxDocumentCsp`](../packages/core/src/security/csp.ts)), so the sandbox is both fully
+   isolated _and_ actually runnable.
+2. **The sandbox document denies all network egress.** `sandbox.html` ships a fixed
+   `default-src 'none'; script-src 'self' blob:; connect-src 'none'; …` policy. The host-trusted
+   guest loads as a same-origin (`'self'`) script; the untrusted plugin source is handed over the
+   private channel and executed as an in-memory `blob:` script. Because the document's own
+   `connect-src` is `'none'`, **the browser physically blocks every request any plugin attempts** —
+   builtin or side-loaded, the network is simply unavailable inside the sandbox. The **host is never
+   a network proxy**, and the app document itself still ships `connect-src 'none'`.
 3. **Deny-by-default permissions.** A plugin declares permissions in a manifest that is validated
    _before any code runs_ ([`validateManifest`](../packages/sdk/src/validate.ts)). The
    [permission engine](../packages/plugin-runtime/src/permission-engine.ts) resolves declared vs.
@@ -90,7 +94,16 @@ isolated by construction rather than by trust:
 
 The one app-level policy concession this requires is `frame-src 'self'` (down from `'none'`), which
 only lets the host _create_ the sandboxes; each sandbox then enforces its own stricter policy. The
-app's own `connect-src 'none'` is unchanged.
+app's own `connect-src 'none'` and `script-src 'self'` are unchanged.
+
+> **On scoped plugin egress.** The permission vocabulary and governance UI model a _declared,
+> admin-granted_ `network` capability with an exact host allow-list, and the permission engine
+> narrows it against policy ([`buildPluginCsp`](../packages/plugin-runtime/src/plugin-csp.ts)
+> computes the corresponding per-plugin `connect-src`). Enforcing that allow-list requires serving
+> the sandbox document with a **per-plugin** CSP — a Service Worker (web) or the Tauri custom
+> protocol (desktop) — which is the tracked next step. **Until then the shipped build is stricter
+> than the model: every plugin gets `connect-src 'none'`, so no plugin can reach the network at
+> all.** The conservative direction: the no-egress guarantee holds unconditionally.
 
 ## Signed side-loading
 
