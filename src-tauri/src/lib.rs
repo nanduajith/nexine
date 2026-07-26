@@ -207,6 +207,16 @@ pub fn run() {
         .register_uri_scheme_protocol("nexine-sandbox", |ctx, request| {
             handle_sandbox_request(ctx.app_handle(), request)
         })
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                #[cfg(target_os = "macos")]
+                {
+                    window.hide().unwrap();
+                    api.prevent_close();
+                }
+            }
+            _ => {}
+        })
         .run(tauri::generate_context!())
         .expect("error while running Nexine");
 }
