@@ -75,7 +75,7 @@ Nexine has **two execution tiers** built from one codebase, separated by an adap
 
 To guarantee the web tier carries zero plugin attack surface, third-party plugin support is abstracted behind a `PluginAdapter` interface (`plugin-adapter.types.ts`).
 
-- `plugin-adapter.web.ts` is a stub that returns no installed plugins and mounts no settings panels.
+- `plugin-adapter.web.ts` is a stub that returns no installed plugins. Instead of functional settings panels, it returns marketing placeholders (the `DesktopUpsell` component) for the Plugins, Egress, and Trust surfaces to clearly communicate that these are desktop-exclusive features.
 - `plugin-adapter.desktop.ts` imports `@nexine/plugin-runtime`, `@nexine/packaging`, and all the sandbox UI machinery, implementing the full side-loading and execution flow.
 
 At build time in `packages/host/vite.config.ts`, an alias swap explicitly points `@adapter` to either the web or desktop implementation. Because the desktop adapter is the _only_ file in the host that imports the plugin machinery, when Vite builds the web tier, the entire runtime, packaging module, guest API, and sandbox UI are structurally unreachable and omitted from the bundle.

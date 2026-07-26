@@ -119,8 +119,8 @@
             <em>explicitly, and specifically,</em> allow it.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-primary" href="app/"
-              >Launch the app
+            <a class="btn btn-primary" href="https://github.com/nanduajith/nexine/releases"
+              >Download Desktop App
               <svg
                 viewBox="0 0 24 24"
                 width="16"
@@ -130,16 +130,17 @@
                 stroke-width="2"
                 stroke-linecap="round"
               >
-                <path d="M5 12h14M13 6l6 6-6 6"></path>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
             </a>
-            <a class="btn btn-ghost" href="#start">Get started</a>
-            <a class="btn btn-ghost" href="#security">How no-egress works</a>
+            <a class="btn btn-ghost" href="app/">Try Web Demo</a>
           </div>
           <p class="demo-note">
-            Runs entirely in your browser — nothing is uploaded. This hosted build is a
-            <b>live demo</b>; for the hardened deployment, use the
-            <a href="#start">desktop app or self-host</a>.
+            The web demo gives you instant access to the 16 built-in tools. <br />
+            To unlock third-party plugins, governance features, and the global hotkey, you need the
+            desktop app.
           </p>
           <div class="hero-badges">
             <span class="chip"><b>16</b> built-in tools</span>
@@ -147,6 +148,53 @@
             <span class="chip"><b>Ed25519</b> signed plugins</span>
             <span class="chip"><b>Tauri</b> desktop + web</span>
             <span class="chip"><b>MIT</b> open core</span>
+          </div>
+        </section>
+
+        <!-- ================= WEB VS DESKTOP ================= -->
+        <section id="web-vs-desktop" class="reveal">
+          <h2>Web vs. Desktop</h2>
+          <p class="sub">
+            Nexine uses a two-tier architecture designed to give you instant access on the web,
+            while reserving powerful, sandboxed plugins for the native desktop app.
+          </p>
+          <div class="table-wrap">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Capability</th>
+                  <th>Web (Lightweight)</th>
+                  <th>Desktop App</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>First-party tools</strong> (JWT, JSON, Hash...)</td>
+                  <td class="yes">✅ Yes</td>
+                  <td class="yes">✅ Yes</td>
+                </tr>
+                <tr>
+                  <td><strong>100% Client-side processing</strong> (No egress)</td>
+                  <td class="yes">✅ Yes</td>
+                  <td class="yes">✅ Yes</td>
+                </tr>
+                <tr>
+                  <td><strong>Global summon hotkey</strong> (⌘⇧Space)</td>
+                  <td class="no">❌ No</td>
+                  <td class="yes">✅ Yes</td>
+                </tr>
+                <tr>
+                  <td><strong>Third-party Plugins</strong></td>
+                  <td class="no">❌ No</td>
+                  <td class="yes">✅ Yes</td>
+                </tr>
+                <tr>
+                  <td><strong>Governance & Egress control</strong></td>
+                  <td class="no">N/A</td>
+                  <td class="yes">✅ Yes</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 

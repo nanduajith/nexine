@@ -17,11 +17,29 @@ Nothing leaves your machine unless you explicitly allow it.
 📖 **Full documentation & live walkthrough:** **[nanduajith.github.io/nexine](https://nanduajith.github.io/nexine/)**
 
 Nexine is a cross-platform (desktop + self-hostable web) collection of everyday developer
-utilities — JWT, Base64, URL, hashing, JSON, and more — built so a security-conscious enterprise
-can offer a sanctioned alternative to pasting production secrets into random online tools. Nexine uses a **two-tier architecture**: on the web, first-party tools run securely in-process; on the desktop app, an embedded runtime allows third parties to build, sign, and side-load their own sandboxed plugins — all without ever giving the app the ability to phone home.
+utilities — JWT, Base64, URL, hashing, JSON, and more. Nexine uses a **two-tier architecture** designed to give you instant access on the web, while reserving powerful, sandboxed third-party plugins for the native desktop app.
 
 > _Nexine_ — after the **nexine**, the inner protective layer of a pollen-grain wall: a hardened
 > shell that keeps what's inside safe.
+
+---
+
+## Web vs. Desktop: Which do I need?
+
+Nexine ships in two forms. The **web version** is a lightweight, instant-access toolbox. The **desktop app** is the full plugin platform.
+
+| Capability                                            | Web (Lightweight) | Desktop App |
+| :---------------------------------------------------- | :---------------: | :---------: |
+| **First-party tools** (JWT, Base64, JSON, Hash, etc.) |      ✅ Yes       |   ✅ Yes    |
+| **100% Client-side processing** (No egress)           |      ✅ Yes       |   ✅ Yes    |
+| **Global summon hotkey** (⌘⇧Space)                    |       ❌ No       |   ✅ Yes    |
+| **Third-party Plugins**                               |       ❌ No       |   ✅ Yes    |
+| **Plugin isolation** (Opaque-origin iframe)           |        N/A        |   ✅ Yes    |
+| **Governance & Egress control**                       |        N/A        |   ✅ Yes    |
+| **OS Keychain-backed secret storage**                 |       ❌ No       |   ✅ Yes    |
+
+**Use the Web App if** you just need to quickly decode a JWT or format some JSON without installing anything.
+**Download the Desktop App if** you want to install third-party plugins, write your own tools, or use the global hotkey to summon Nexine over any window.
 
 ---
 

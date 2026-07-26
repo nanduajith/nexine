@@ -465,6 +465,48 @@ section > .sub {
   padding: 8px 2px;
 }
 
+/* Comparison Table */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+.comparison-table th,
+.comparison-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.comparison-table th {
+  background: var(--bg-2);
+  color: var(--fg-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.comparison-table th:not(:first-child),
+.comparison-table td:not(:first-child) {
+  text-align: center;
+}
+.comparison-table tr:last-child td {
+  border-bottom: none;
+}
+.comparison-table td strong {
+  color: var(--fg);
+}
+.comparison-table .yes {
+  color: var(--good);
+}
+.comparison-table .no {
+  color: var(--fg-subtle);
+}
+
 /* No-egress feature */
 .egress {
   display: grid;
