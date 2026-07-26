@@ -72,8 +72,28 @@
       desc: 'Test patterns against sample text with live match highlighting.',
     },
     { name: 'Case Converter', cat: 'Text', desc: 'camelCase, snake_case, kebab-case, and more.' },
+    {
+      name: 'Text Diff',
+      cat: 'Text',
+      desc: 'Compare two blocks of text line by line and see what changed.',
+    },
+    {
+      name: 'Color Converter',
+      cat: 'Web',
+      desc: 'Convert colors between HEX, RGB, and HSL, with a live preview.',
+    },
+    {
+      name: '.env ↔ JSON',
+      cat: 'Data',
+      desc: 'Convert between .env files and JSON objects in either direction.',
+    },
     { name: 'UUID Generator', cat: 'Generators', desc: 'RFC 4122 v4 UUIDs from a secure CSPRNG.' },
     { name: 'Timestamp', cat: 'Time', desc: 'Convert between Unix time and human-readable dates.' },
+    {
+      name: 'Cron Explainer',
+      cat: 'Time',
+      desc: 'Explain a cron expression in plain language and preview upcoming runs.',
+    },
     {
       name: 'Sandbox Demo',
       cat: 'Data',

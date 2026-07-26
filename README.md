@@ -6,7 +6,7 @@ Nothing leaves your machine unless you explicitly allow it.
 <!-- prettier-ignore-start -->
 [![CI](https://github.com/nanduajith/nexine/actions/workflows/ci.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
 [![Release](https://github.com/nanduajith/nexine/actions/workflows/release.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/release.yml)
-[![Tests](https://img.shields.io/badge/tests-119%20passing-2ea44f)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-160%20passing-2ea44f)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
 [![Egress](https://img.shields.io/badge/network%20egress-deny--by--default-2ea44f)](docs/security-model.md)
 [![Platform](https://img.shields.io/badge/platform-desktop%20%7C%20web-6366f1)](#desktop-app-tauri)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8b5cf6)](LICENSE)
@@ -66,22 +66,26 @@ honest non-goals.
 
 ## Tools
 
-Twelve tools ship built-in — each a sandboxed plugin, enabled by default and removable:
+Sixteen tools ship built-in — each a sandboxed plugin, enabled by default and removable:
 
-| Tool           | What it does                                           |
-| -------------- | ------------------------------------------------------ |
-| JWT Decoder    | Decode & inspect JWTs locally (sensitive — no history) |
-| Base64         | Encode/decode, Unicode-safe, URL-safe variant          |
-| Hex Converter  | Text ↔ hexadecimal bytes                               |
-| URL Encode     | Percent-encode/decode + query-string inspection        |
-| HTML Entities  | Escape/unescape named, decimal, and hex entities       |
-| Hash           | SHA-1/256/384/512 via WebCrypto                        |
-| JSON Formatter | Beautify, minify, validate                             |
-| RegEx Tester   | Test patterns with live match highlighting             |
-| UUID Generator | RFC 4122 v4 UUIDs via a secure CSPRNG                  |
-| Timestamp      | Unix ↔ ISO/UTC/local date conversion                   |
-| Case Converter | camelCase / snake_case / kebab-case and more           |
-| Sandbox Demo   | A self-test that proves the sandbox isolation          |
+| Tool            | What it does                                           |
+| --------------- | ------------------------------------------------------ |
+| JWT Decoder     | Decode & inspect JWTs locally (sensitive — no history) |
+| Base64          | Encode/decode, Unicode-safe, URL-safe variant          |
+| Hex Converter   | Text ↔ hexadecimal bytes                               |
+| URL Encode      | Percent-encode/decode + query-string inspection        |
+| HTML Entities   | Escape/unescape named, decimal, and hex entities       |
+| Hash            | SHA-1/256/384/512 via WebCrypto                        |
+| JSON Formatter  | Beautify, minify, validate                             |
+| RegEx Tester    | Test patterns with live match highlighting             |
+| UUID Generator  | RFC 4122 v4 UUIDs via a secure CSPRNG                  |
+| Timestamp       | Unix ↔ ISO/UTC/local date conversion                   |
+| Case Converter  | camelCase / snake_case / kebab-case and more           |
+| Cron Explainer  | Explain a cron expression + preview upcoming runs      |
+| Color Converter | HEX ↔ RGB ↔ HSL with a live preview                    |
+| Text Diff       | Line-by-line comparison of two text blocks             |
+| .env ↔ JSON     | Convert between `.env` files and JSON, either way      |
+| Sandbox Demo    | A self-test that proves the sandbox isolation          |
 
 Plus a **⌘K command palette**, starrable favorites, dark/light themes, and — on desktop — a
 global summon hotkey.

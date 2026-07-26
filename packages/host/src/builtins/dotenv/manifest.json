@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "dotenv",
+  "name": ".env ↔ JSON",
+  "version": "1.0.0",
+  "description": "Convert between .env files and JSON objects in either direction.",
+  "category": "data",
+  "author": "Nexine",
+  "icon": "FileCog",
+  "keywords": ["env", "dotenv", "environment", "json", "config", "variables"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}
