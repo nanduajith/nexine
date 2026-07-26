@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 
 import { usePreferences } from '../../app/hooks/usePreferences';
 import type { ToolSections } from '../../app/hooks/useTools';
+import { useTranslation } from '../../infrastructure/i18n';
 import { pluginAdapter } from '../../infrastructure/platform/plugin-adapter';
 import { preferencesStore } from '../../infrastructure/storage/preferences-store';
 import { toolIcon } from '../../lib/icons';
@@ -18,6 +19,7 @@ interface SidebarProps {
 
 export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: SidebarProps) {
   const { favorites } = usePreferences();
+  const { t } = useTranslation();
   const { categoryGroups, allTools } = sections;
   const favoriteTools = allTools.filter((tool) => favorites.includes(tool.id));
 
@@ -52,7 +54,7 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
                 : '',
             )}
           />
-          <span>Home</span>
+          <span>{t('Home')}</span>
         </button>
         <button
           type="button"
@@ -60,14 +62,14 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
           className="flex w-full items-center gap-2 rounded-[var(--nx-radius)] border border-[var(--nx-border)] bg-[var(--nx-bg)] px-3 py-2 text-sm text-[var(--nx-fg-subtle)] transition-colors hover:border-[var(--nx-border-strong)]"
         >
           <Search size={15} />
-          <span>Search tools…</span>
+          <span>{t('Search tools…')}</span>
           <Kbd className="ml-auto">⌘K</Kbd>
         </button>
       </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-2 pb-4">
         {favoriteTools.length > 0 && (
-          <ToolGroup label="Favorites">
+          <ToolGroup label={t('Favorites')}>
             {favoriteTools.map((tool) => (
               <ToolRow
                 key={tool.id}
@@ -81,7 +83,7 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
         )}
 
         {categoryGroups.map(([category, tools]) => (
-          <ToolGroup key={category} label={getCategory(category).label}>
+          <ToolGroup key={category} label={t(getCategory(category).label)}>
             {tools.map((tool) => (
               <ToolRow
                 key={tool.id}
@@ -103,7 +105,7 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
             className="flex w-full items-center gap-2.5 rounded-[var(--nx-radius)] px-3 py-2 text-sm text-[var(--nx-fg-subtle)] transition-all hover:text-[var(--nx-fg)] hover:bg-[var(--nx-surface-2)] mb-1"
           >
             <Lock size={16} className="shrink-0" />
-            <span className="truncate font-medium">Plugins require App</span>
+            <span className="truncate font-medium">{t('Plugins require App')}</span>
           </button>
         )}
         <button
@@ -120,7 +122,7 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
             size={16}
             className={cn('shrink-0', activeId === 'settings' && 'text-[var(--nx-primary)]')}
           />
-          <span className="font-medium">Settings</span>
+          <span className="font-medium">{t('Settings')}</span>
         </button>
         <button
           type="button"
@@ -136,7 +138,7 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
             size={16}
             className={cn('shrink-0', activeId === 'about' && 'text-[var(--nx-primary)]')}
           />
-          <span className="font-medium">About</span>
+          <span className="font-medium">{t('About')}</span>
         </button>
       </div>
     </aside>
@@ -171,6 +173,7 @@ interface ToolRowProps {
 }
 
 function ToolRow({ tool, active, favorite, onNavigate }: ToolRowProps) {
+  const { t } = useTranslation();
   const Icon = toolIcon(tool.icon);
   return (
     <div
@@ -188,7 +191,7 @@ function ToolRow({ tool, active, favorite, onNavigate }: ToolRowProps) {
         )}
       >
         <Icon size={16} className={cn('shrink-0', active ? 'text-[var(--nx-primary)]' : '')} />
-        <span className="truncate font-medium">{tool.name}</span>
+        <span className="truncate font-medium">{t(`tool.${tool.id}.name`)}</span>
       </button>
       <button
         type="button"

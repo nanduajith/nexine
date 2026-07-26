@@ -13,12 +13,12 @@ export default register((ctx) => ({
 
     const out = k.textarea({
       readOnly: true,
-      placeholder: 'Formatted JSON appears here',
+      placeholder: ctx.t('Formatted JSON appears here'),
       minHeight: 320,
     });
     const err = k.h('span', { class: 'nx-error' });
     const inputTa = k.textarea({
-      placeholder: '{ "paste": "your JSON here" }',
+      placeholder: ctx.t('{ "paste": "your JSON here" }'),
       minHeight: 320,
       oninput: (v) => {
         input = v;
@@ -28,9 +28,9 @@ export default register((ctx) => ({
 
     const indentSeg = k.segmented(
       [
-        { value: '2', label: '2 spaces' },
-        { value: '4', label: '4 spaces' },
-        { value: 'tab', label: 'Tabs' },
+        { value: '2', label: ctx.t('2 spaces') },
+        { value: '4', label: ctx.t('4 spaces') },
+        { value: 'tab', label: ctx.t('Tabs') },
       ] as const,
       indent,
       (v) => {
@@ -46,7 +46,7 @@ export default register((ctx) => ({
       indentSeg.style.display = mode === 'beautify' ? '' : 'none';
     }
 
-    const inputField = k.field('Input', inputTa);
+    const inputField = k.field(ctx.t('Input'), inputTa);
     inputField.append(err);
 
     root.append(
@@ -55,8 +55,8 @@ export default register((ctx) => ({
           false,
           k.segmented(
             [
-              { value: 'beautify', label: 'Beautify' },
-              { value: 'minify', label: 'Minify' },
+              { value: 'beautify', label: ctx.t('Beautify') },
+              { value: 'minify', label: ctx.t('Minify') },
             ] as const,
             mode,
             (v) => {
@@ -66,7 +66,10 @@ export default register((ctx) => ({
           ),
           indentSeg,
         ),
-        k.grid2(inputField, k.field('Output', out, { action: k.copyButton(() => out.value) })),
+        k.grid2(
+          inputField,
+          k.field(ctx.t('Output'), out, { action: k.copyButton(() => out.value) }),
+        ),
       ),
     );
     update();

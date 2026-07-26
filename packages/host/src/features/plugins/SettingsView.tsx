@@ -13,6 +13,7 @@ import { type ReactNode, useState } from 'react';
 import { useAudit } from '../../app/hooks/useAudit';
 import { useGovernance } from '../../app/hooks/useGovernance';
 import { BUILTIN_INFO } from '../../builtins';
+import { useTranslation } from '../../infrastructure/i18n';
 import { pluginAdapter } from '../../infrastructure/platform/plugin-adapter';
 import type { PluginSettingsSection } from '../../infrastructure/platform/plugin-adapter.types';
 import { auditStore, type AuditEventType } from '../../infrastructure/storage/audit-store';
@@ -42,6 +43,7 @@ function downloadJson(filename: string, data: unknown) {
  */
 function BuiltinsPanel() {
   const governance = useGovernance();
+  const { t } = useTranslation();
   const removed = new Set(governance.disabledBuiltins);
 
   return (
@@ -55,14 +57,14 @@ function BuiltinsPanel() {
               className="flex items-center justify-between gap-3 rounded-[var(--nx-radius)] border border-[var(--nx-border)] bg-[var(--nx-surface-2)] p-3"
             >
               <div className="min-w-0">
-                <div className="text-sm font-medium text-[var(--nx-fg)]">{builtin.name}</div>
-                <div className="text-xs text-[var(--nx-fg-subtle)]">{builtin.description}</div>
+                <div className="text-sm font-medium text-[var(--nx-fg)]">{t(builtin.name)}</div>
+                <div className="text-xs text-[var(--nx-fg-subtle)]">{t(builtin.description)}</div>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 {enabled && (
                   <Button variant="secondary" size="sm" onClick={() => openTool(builtin.id)}>
                     <ExternalLink size={13} className="mr-1" />
-                    Open
+                    {t('Open')}
                   </Button>
                 )}
                 <Button
@@ -74,7 +76,7 @@ function BuiltinsPanel() {
                       : governanceStore.enableBuiltin(builtin.id)
                   }
                 >
-                  {enabled ? 'Remove' : 'Add to tools'}
+                  {enabled ? t('Remove') : t('Add to tools')}
                 </Button>
               </div>
             </li>
@@ -87,6 +89,7 @@ function BuiltinsPanel() {
 
 /** Export the shareable governance policy to a file, or import one back. */
 function PolicyPanel() {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [imported, setImported] = useState(false);
 
@@ -98,11 +101,11 @@ function PolicyPanel() {
       try {
         doc = JSON.parse(text);
       } catch {
-        setError('That is not valid JSON — choose a policy file exported from Nexine.');
+        setError(t('That is not valid JSON — choose a policy file exported from Nexine.'));
         return;
       }
       if (governanceStore.importPolicy(doc)) setImported(true);
-      else setError('That JSON is not a Nexine policy document (missing policy/trust).');
+      else setError(t('That JSON is not a Nexine policy document (missing policy/trust).'));
     });
   };
 
@@ -116,11 +119,11 @@ function PolicyPanel() {
             onClick={() => downloadJson('nexine-policy.json', governanceStore.exportPolicy())}
           >
             <Download size={13} className="mr-1" />
-            Export policy
+            {t('Export policy')}
           </Button>
           <label className="inline-flex cursor-pointer items-center gap-1 rounded-[var(--nx-radius)] border border-[var(--nx-border)] bg-[var(--nx-surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--nx-fg)] hover:bg-[var(--nx-surface-3)]">
             <Upload size={13} />
-            Import policy
+            {t('Import policy')}
             <input
               type="file"
               accept="application/json,.json"
@@ -134,7 +137,7 @@ function PolicyPanel() {
           </label>
         </div>
         {error && <Notice tone="danger">{error}</Notice>}
-        {imported && <Notice tone="muted">Policy imported and applied.</Notice>}
+        {imported && <Notice tone="muted">{t('Policy imported and applied.')}</Notice>}
       </div>
     </Panel>
   );
@@ -171,6 +174,7 @@ const AUDIT_TONE: Partial<Record<AuditEventType, 'success' | 'danger' | 'warning
 
 /** The on-device governance audit log — metadata only, never payloads. */
 function ActivityLogPanel() {
+  const { t } = useTranslation();
   const events = useAudit();
 
   return (
@@ -183,7 +187,7 @@ function ActivityLogPanel() {
           onClick={() => downloadJson('nexine-audit-log.json', events)}
         >
           <Download size={13} className="mr-1" />
-          Export log
+          {t('Export log')}
         </Button>
         <Button
           variant="ghost"
@@ -191,12 +195,12 @@ function ActivityLogPanel() {
           disabled={events.length === 0}
           onClick={() => auditStore.clear()}
         >
-          Clear
+          {t('Clear')}
         </Button>
       </div>
 
       {events.length === 0 ? (
-        <div className="text-sm text-[var(--nx-fg-subtle)]">No activity recorded yet.</div>
+        <div className="text-sm text-[var(--nx-fg-subtle)]">{t('No activity recorded yet.')}</div>
       ) : (
         <ul className="flex flex-col gap-1">
           {events.map((event) => (
@@ -204,7 +208,7 @@ function ActivityLogPanel() {
               key={event.id}
               className="flex items-center gap-3 rounded-[var(--nx-radius)] px-2 py-1.5 text-sm hover:bg-[var(--nx-surface-2)]"
             >
-              <Badge tone={AUDIT_TONE[event.type] ?? 'neutral'}>{AUDIT_COPY[event.type]}</Badge>
+              <Badge tone={AUDIT_TONE[event.type] ?? 'neutral'}>{t(AUDIT_COPY[event.type])}</Badge>
               <span className="min-w-0 flex-1 truncate font-mono text-xs text-[var(--nx-fg)]">
                 {event.subject}
                 {event.detail ? (
@@ -287,6 +291,7 @@ const SECTIONS: readonly SettingsSection[] = [
  * — but never runs a plugin. On the web tier the plugin surfaces are simply absent.
  */
 export function SettingsView() {
+  const { t } = useTranslation();
   const [activeId, setActiveId] = useState<string>(SECTIONS[0]!.id);
   const section = SECTIONS.find((s) => s.id === activeId) ?? SECTIONS[0]!;
 
@@ -317,7 +322,7 @@ export function SettingsView() {
                     size={16}
                     className={cn('shrink-0', active && 'text-[var(--nx-primary)]')}
                   />
-                  {s.label}
+                  {t(s.label)}
                 </button>
               </li>
             );
@@ -328,8 +333,8 @@ export function SettingsView() {
       <div className="min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl px-6 py-6">
           <header className="mb-5">
-            <h2 className="text-base font-semibold text-[var(--nx-fg)]">{section.label}</h2>
-            <p className="mt-1 text-sm text-[var(--nx-fg-subtle)]">{section.description}</p>
+            <h2 className="text-base font-semibold text-[var(--nx-fg)]">{t(section.label)}</h2>
+            <p className="mt-1 text-sm text-[var(--nx-fg-subtle)]">{t(section.description)}</p>
           </header>
           {section.render()}
         </div>

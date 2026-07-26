@@ -14,7 +14,7 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
+          title: ctx.t('Options'),
           body: k.row(
             true,
             k.field(
@@ -33,8 +33,8 @@ export default register((ctx) => ({
               'Format',
               k.segmented(
                 [
-                  { value: 'hex', label: 'Hex' },
-                  { value: 'base64', label: 'Base64' },
+                  { value: 'hex', label: ctx.t('Hex') },
+                  { value: 'base64', label: ctx.t('Base64') },
                 ],
                 enc,
                 (v) => {
@@ -43,11 +43,11 @@ export default register((ctx) => ({
                 },
               ),
             ),
-            k.button('Regenerate', { variant: 'primary', onClick: update }),
+            k.button(ctx.t('Regenerate'), { variant: 'primary', onClick: update }),
           ),
         }),
         k.panel({
-          title: 'Output',
+          title: ctx.t('Output'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

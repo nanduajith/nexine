@@ -7,7 +7,7 @@ export default register((ctx) => ({
     const k = createApp(root, ctx);
     let toFormat: Format = 'yaml';
 
-    const input = k.textarea({ minHeight: 300, placeholder: 'Paste JSON or YAML here...' });
+    const input = k.textarea({ minHeight: 300, placeholder: ctx.t('Paste JSON or YAML here...') });
     const out = k.textarea({ minHeight: 300, readOnly: true });
 
     const update = () => {
@@ -31,11 +31,11 @@ export default register((ctx) => ({
     root.append(
       k.grid2(
         k.panel({
-          title: 'Input',
+          title: ctx.t('Input'),
           actions: k.segmented(
             [
-              { value: 'yaml', label: 'To YAML' },
-              { value: 'json', label: 'To JSON' },
+              { value: 'yaml', label: ctx.t('To YAML') },
+              { value: 'json', label: ctx.t('To JSON') },
             ] as const,
             toFormat,
             (v) => {
@@ -47,7 +47,7 @@ export default register((ctx) => ({
           flush: true,
         }),
         k.panel({
-          title: 'Output',
+          title: ctx.t('Output'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

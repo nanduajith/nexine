@@ -1,27 +1,33 @@
 import { Panel } from '@nexine/ui';
 import { BookOpen, ExternalLink, Github, Globe } from 'lucide-react';
 
+import { useTranslation } from '../../infrastructure/i18n';
+
 export function AboutView() {
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold tracking-tight text-[var(--nx-fg)]">About Nexine</h1>
+        <h1 className="mb-2 text-3xl font-bold tracking-tight text-[var(--nx-fg)]">
+          {t('About Nexine')}
+        </h1>
         <p className="text-lg text-[var(--nx-fg-muted)]">
-          The offline-first, no-egress developer toolbox.
+          {t('The offline-first, no-egress developer toolbox.')}
         </p>
       </div>
 
       <div className="grid gap-6">
         <Panel className="p-6">
-          <h2 className="mb-3 text-lg font-semibold text-[var(--nx-fg)]">Our Philosophy</h2>
+          <h2 className="mb-3 text-lg font-semibold text-[var(--nx-fg)]">{t('Our Philosophy')}</h2>
           <p className="mb-4 text-sm text-[var(--nx-fg-muted)] leading-relaxed">
-            Developer tools handle your most sensitive data—API keys, proprietary source code, and
-            production database dumps. We believe you shouldn't have to paste this data into random
-            ad-supported websites.
+            {t(
+              "Developer tools handle your most sensitive data—API keys, proprietary source code, and production database dumps. We believe you shouldn't have to paste this data into random ad-supported websites.",
+            )}
           </p>
           <p className="text-sm text-[var(--nx-fg-muted)] leading-relaxed">
-            Nexine is built to be strictly local and offline-first. By default, it denies all
-            network egress, providing a secure sandbox where your data stays on your machine.
+            {t(
+              'Nexine is built to be strictly local and offline-first. By default, it denies all network egress, providing a secure sandbox where your data stays on your machine.',
+            )}
           </p>
         </Panel>
 
@@ -36,14 +42,14 @@ export function AboutView() {
               <Github size={20} />
             </div>
             <h3 className="mb-1 font-semibold text-[var(--nx-fg)] flex items-center gap-1.5">
-              GitHub Repository{' '}
+              {t('GitHub Repository')}{' '}
               <ExternalLink
                 size={14}
                 className="opacity-0 transition-opacity group-hover:opacity-100"
               />
             </h3>
             <p className="text-sm text-[var(--nx-fg-subtle)]">
-              Star us, report issues, or contribute to the core platform.
+              {t('Star us, report issues, or contribute to the core platform.')}
             </p>
           </a>
 
@@ -57,14 +63,14 @@ export function AboutView() {
               <Globe size={20} />
             </div>
             <h3 className="mb-1 font-semibold text-[var(--nx-fg)] flex items-center gap-1.5">
-              Project Website{' '}
+              {t('Project Website')}{' '}
               <ExternalLink
                 size={14}
                 className="opacity-0 transition-opacity group-hover:opacity-100"
               />
             </h3>
             <p className="text-sm text-[var(--nx-fg-subtle)]">
-              Learn more about the platform architecture and releases.
+              {t('Learn more about the platform architecture and releases.')}
             </p>
           </a>
 
@@ -78,14 +84,14 @@ export function AboutView() {
               <BookOpen size={20} />
             </div>
             <h3 className="mb-1 font-semibold text-[var(--nx-fg)] flex items-center gap-1.5">
-              Documentation{' '}
+              {t('Documentation')}{' '}
               <ExternalLink
                 size={14}
                 className="opacity-0 transition-opacity group-hover:opacity-100"
               />
             </h3>
             <p className="text-sm text-[var(--nx-fg-subtle)]">
-              Read our guides on architecture, security model, and how to build plugins.
+              {t('Read our guides on architecture, security model, and how to build plugins.')}
             </p>
           </a>
         </div>

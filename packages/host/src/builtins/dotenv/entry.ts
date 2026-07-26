@@ -19,8 +19,8 @@ export default register((ctx) => ({
       },
     });
 
-    const inField = k.field('.env', inputTa);
-    const outField = k.field('JSON', out, { action: k.copyButton(() => out.value) });
+    const inField = k.field(ctx.t('.env'), inputTa);
+    const outField = k.field(ctx.t('JSON'), out, { action: k.copyButton(() => out.value) });
     outField.append(error);
     const inLabel = inField.querySelector('.nx-label') as HTMLElement;
     const outLabel = outField.querySelector('.nx-label') as HTMLElement;
@@ -45,8 +45,8 @@ export default register((ctx) => ({
           true,
           k.segmented(
             [
-              { value: 'env2json', label: '.env → JSON' },
-              { value: 'json2env', label: 'JSON → .env' },
+              { value: 'env2json', label: ctx.t('.env → JSON') },
+              { value: 'json2env', label: ctx.t('JSON → .env') },
             ] as const,
             mode,
             (v) => {

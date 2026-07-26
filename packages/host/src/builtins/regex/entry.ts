@@ -13,7 +13,7 @@ export default register((ctx) => ({
     const matchesHolder = k.h('div');
 
     const patternInput = k.input({
-      placeholder: '\\d{3}-\\d{4}',
+      placeholder: ctx.t('\\d{3}-\\d{4}'),
       oninput: (v) => {
         pattern = v;
         update();
@@ -21,14 +21,14 @@ export default register((ctx) => ({
     });
     const flagsInput = k.input({
       value: flags,
-      placeholder: 'gim',
+      placeholder: ctx.t('gim'),
       oninput: (v) => {
         flags = v;
         update();
       },
     });
     const textTa = k.textarea({
-      placeholder: 'Text to search…',
+      placeholder: ctx.t('Text to search…'),
       minHeight: 180,
       oninput: (v) => {
         text = v;
@@ -59,7 +59,7 @@ export default register((ctx) => ({
 
       matchesHolder.replaceChildren(
         k.panel({
-          title: 'Matches',
+          title: ctx.t('Matches'),
           description: r.ok ? `${matches.length} found` : 'Invalid pattern',
           flush: matches.length > 0,
           body,
@@ -67,10 +67,10 @@ export default register((ctx) => ({
       );
     }
 
-    const patternField = k.field('Pattern', patternInput);
+    const patternField = k.field(ctx.t('Pattern'), patternInput);
     patternField.style.flex = '1';
     patternField.append(err);
-    const flagsField = k.field('Flags', flagsInput);
+    const flagsField = k.field(ctx.t('Flags'), flagsInput);
     flagsField.style.width = '112px';
 
     root.append(
@@ -81,7 +81,7 @@ export default register((ctx) => ({
           patternField,
           flagsField,
         ),
-        k.field('Test string', textTa),
+        k.field(ctx.t('Test string'), textTa),
         matchesHolder,
       ),
     );

@@ -6,7 +6,10 @@ export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
 
-    const input = k.textarea({ placeholder: '-----BEGIN CERTIFICATE-----\\n...', minHeight: 300 });
+    const input = k.textarea({
+      placeholder: ctx.t('-----BEGIN CERTIFICATE-----\\n...'),
+      minHeight: 300,
+    });
     input.classList.add('nx-mono');
 
     const detailsWrap = k.h(
@@ -77,12 +80,12 @@ export default register((ctx) => ({
     root.append(
       k.grid2(
         k.panel({
-          title: 'PEM Certificate',
+          title: ctx.t('PEM Certificate'),
           body: input,
           flush: true,
         }),
         k.panel({
-          title: 'Details',
+          title: ctx.t('Details'),
           body: detailsWrap,
           flush: true,
         }),

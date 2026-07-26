@@ -15,7 +15,7 @@ export default register((ctx) => ({
 
     const field = k.input({
       value: input,
-      placeholder: 'e.g. 0 9 * * mon-fri',
+      placeholder: ctx.t('e.g. 0 9 * * mon-fri'),
       oninput: (v) => {
         input = v;
         update();
@@ -67,13 +67,13 @@ export default register((ctx) => ({
 
     root.append(
       k.stack(
-        k.field('Cron expression', field, { action: k.copyButton(() => input) }),
+        k.field(ctx.t('Cron expression'), field, { action: k.copyButton(() => input) }),
         presetRow,
         k.panel({
-          title: 'What it means',
+          title: ctx.t('What it means'),
           body: k.stack(summary, error),
         }),
-        k.panel({ title: 'Next 5 runs', body: runsBody, flush: true }),
+        k.panel({ title: ctx.t('Next 5 runs'), body: runsBody, flush: true }),
       ),
     );
     update();

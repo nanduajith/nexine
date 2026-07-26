@@ -16,9 +16,12 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'NanoID',
+          title: ctx.t('NanoID'),
           actions: k.copyButton(() => out.value),
-          body: k.stack(out, k.button('Regenerate', { variant: 'primary', onClick: update })),
+          body: k.stack(
+            out,
+            k.button(ctx.t('Regenerate'), { variant: 'primary', onClick: update }),
+          ),
         }),
       ),
     );

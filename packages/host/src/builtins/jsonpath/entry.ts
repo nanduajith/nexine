@@ -4,9 +4,9 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const json = k.textarea({ placeholder: 'JSON...' });
+    const json = k.textarea({ placeholder: ctx.t('JSON...') });
     json.classList.add('nx-mono');
-    const query = k.input({ placeholder: '$.store.book[*].author' });
+    const query = k.input({ placeholder: ctx.t('$.store.book[*].author') });
     query.classList.add('nx-mono');
     const out = k.textarea({ readOnly: true, minHeight: 200 });
     out.classList.add('nx-mono');
@@ -17,11 +17,11 @@ export default register((ctx) => ({
     query.addEventListener('input', update);
     root.append(
       k.stack(
-        k.panel({ title: 'JSONPath Query', body: query }),
+        k.panel({ title: ctx.t('JSONPath Query'), body: query }),
         k.grid2(
-          k.panel({ title: 'JSON', body: json, flush: true }),
+          k.panel({ title: ctx.t('JSON'), body: json, flush: true }),
           k.panel({
-            title: 'Matches',
+            title: ctx.t('Matches'),
             actions: k.copyButton(() => out.value),
             body: out,
             flush: true,

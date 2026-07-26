@@ -21,7 +21,7 @@ export default register((ctx) => ({
     );
 
     const inputTa = k.textarea({
-      placeholder: 'Type or paste text in any case…',
+      placeholder: ctx.t('Type or paste text in any case…'),
       minHeight: 120,
       oninput: (v) => {
         input = v;
@@ -35,7 +35,7 @@ export default register((ctx) => ({
 
     root.append(
       k.stack(
-        k.field('Input', inputTa),
+        k.field(ctx.t('Input'), inputTa),
         k.h(
           'div',
           {

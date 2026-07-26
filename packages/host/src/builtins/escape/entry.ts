@@ -5,7 +5,7 @@ export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let mode: 'escape' | 'unescape' = 'escape';
-    const inp = k.textarea({ placeholder: 'Text...' });
+    const inp = k.textarea({ placeholder: ctx.t('Text...') });
     const out = k.textarea({ readOnly: true, minHeight: 200 });
     out.classList.add('nx-mono');
     const update = () => {
@@ -15,11 +15,11 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
+          title: ctx.t('Options'),
           body: k.segmented(
             [
-              { value: 'escape', label: 'Escape' },
-              { value: 'unescape', label: 'Unescape' },
+              { value: 'escape', label: ctx.t('Escape') },
+              { value: 'unescape', label: ctx.t('Unescape') },
             ],
             mode,
             (v) => {
@@ -29,9 +29,9 @@ export default register((ctx) => ({
           ),
         }),
         k.grid2(
-          k.panel({ title: 'Input', body: inp, flush: true }),
+          k.panel({ title: ctx.t('Input'), body: inp, flush: true }),
           k.panel({
-            title: 'Result',
+            title: ctx.t('Result'),
             actions: k.copyButton(() => out.value),
             body: out,
             flush: true,

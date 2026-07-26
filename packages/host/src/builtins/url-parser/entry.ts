@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.textarea({ placeholder: 'https://...' });
+    const inp = k.textarea({ placeholder: ctx.t('https://...') });
     const out = k.textarea({ readOnly: true, minHeight: 300 });
     out.classList.add('nx-mono');
     const update = () => {
@@ -13,9 +13,9 @@ export default register((ctx) => ({
     inp.addEventListener('input', update);
     root.append(
       k.grid2(
-        k.panel({ title: 'URL', body: inp, flush: true }),
+        k.panel({ title: ctx.t('URL'), body: inp, flush: true }),
         k.panel({
-          title: 'Parsed',
+          title: ctx.t('Parsed'),
           actions: k.copyButton(() => out.value),
           body: out,
           flush: true,

@@ -8,8 +8,8 @@ export default register((ctx) => ({
 
     // Hash Mode
     let rounds = 10;
-    const hashInput = k.input({ placeholder: 'Password to hash...' });
-    const hashOutput = k.input({ placeholder: 'Generated hash will appear here...' });
+    const hashInput = k.input({ placeholder: ctx.t('Password to hash...') });
+    const hashOutput = k.input({ placeholder: ctx.t('Generated hash will appear here...') });
     hashOutput.readOnly = true;
     hashOutput.classList.add('nx-mono');
 
@@ -25,8 +25,8 @@ export default register((ctx) => ({
     hashInput.addEventListener('input', updateHash);
 
     // Verify Mode
-    const verifyInput = k.input({ placeholder: 'Password to verify...' });
-    const verifyHashInput = k.input({ placeholder: 'Bcrypt hash to check against...' });
+    const verifyInput = k.input({ placeholder: ctx.t('Password to verify...') });
+    const verifyHashInput = k.input({ placeholder: ctx.t('Bcrypt hash to check against...') });
     verifyHashInput.classList.add('nx-mono');
 
     const verifyStatus = k.h(
@@ -56,9 +56,9 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Generate Hash',
+          title: ctx.t('Generate Hash'),
           body: k.stack(
-            k.field('Password', hashInput),
+            k.field(ctx.t('Password'), hashInput),
             k.row(
               false,
               k.h(
@@ -79,16 +79,18 @@ export default register((ctx) => ({
                   }),
                 ),
               ),
-              k.button('Regenerate', { variant: 'primary', onClick: updateHash }),
+              k.button(ctx.t('Regenerate'), { variant: 'primary', onClick: updateHash }),
             ),
-            k.field('Output Hash', hashOutput, { action: k.copyButton(() => hashOutput.value) }),
+            k.field(ctx.t('Output Hash'), hashOutput, {
+              action: k.copyButton(() => hashOutput.value),
+            }),
           ),
         }),
         k.panel({
-          title: 'Verify Hash',
+          title: ctx.t('Verify Hash'),
           body: k.stack(
-            k.field('Password', verifyInput),
-            k.field('Bcrypt Hash', verifyHashInput),
+            k.field(ctx.t('Password'), verifyInput),
+            k.field(ctx.t('Bcrypt Hash'), verifyHashInput),
             k.h(
               'div',
               { style: 'display:flex;align-items:center;justify-content:center' },

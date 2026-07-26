@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.input({ placeholder: 'Snowflake ID...' });
+    const inp = k.input({ placeholder: ctx.t('Snowflake ID...') });
     const epoch = k.input({ value: '1420070400000' });
     const out = k.h(
       'div',
@@ -36,10 +36,13 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Input',
-          body: k.stack(k.field('Snowflake', inp), k.field('Epoch Offset (ms)', epoch)),
+          title: ctx.t('Input'),
+          body: k.stack(
+            k.field(ctx.t('Snowflake'), inp),
+            k.field(ctx.t('Epoch Offset (ms)'), epoch),
+          ),
         }),
-        k.panel({ title: 'Decoded', body: out }),
+        k.panel({ title: ctx.t('Decoded'), body: out }),
       ),
     );
   },

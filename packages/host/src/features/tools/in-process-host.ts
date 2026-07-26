@@ -1,6 +1,8 @@
 import type { PluginManifest } from '@nexine/sdk';
 import type { HostBridge, PluginContext, StorageApi } from '@nexine/sdk/guest';
 
+import { t } from '../../infrastructure/i18n';
+
 /**
  * The host bridge for first-party tools running **in-process** (web + desktop).
  * First-party tools are trusted app code compiled into the bundle, so there is no
@@ -47,5 +49,10 @@ const clipboard = {
 /** Build the in-process context handed to a first-party tool's `setup`. */
 export function createInProcessContext(manifest: PluginManifest): PluginContext {
   const host: HostBridge = { storage: namespacedStorage(manifest.id), clipboard };
-  return { manifest, permissions: manifest.permissions ?? [], host };
+  return {
+    manifest,
+    permissions: manifest.permissions ?? [],
+    host,
+    t,
+  };
 }

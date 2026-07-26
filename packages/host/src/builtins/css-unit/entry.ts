@@ -5,8 +5,8 @@ export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
     let base = 16;
-    const pxInp = k.input({ placeholder: 'px' });
-    const remInp = k.input({ placeholder: 'rem' });
+    const pxInp = k.input({ placeholder: ctx.t('px') });
+    const remInp = k.input({ placeholder: ctx.t('rem') });
     pxInp.addEventListener('input', () => {
       remInp.value = pxToRem(pxInp.value, base);
     });
@@ -15,7 +15,7 @@ export default register((ctx) => ({
     });
     root.append(
       k.panel({
-        title: 'CSS Unit Converter',
+        title: ctx.t('CSS Unit Converter'),
         body: k.stack(
           k.field(
             'Base Font Size (px)',
@@ -29,7 +29,7 @@ export default register((ctx) => ({
               },
             }),
           ),
-          k.row(true, k.field('Pixels', pxInp), k.field('Rem', remInp)),
+          k.row(true, k.field(ctx.t('Pixels'), pxInp), k.field(ctx.t('Rem'), remInp)),
         ),
       }),
     );

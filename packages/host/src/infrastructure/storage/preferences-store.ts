@@ -8,11 +8,13 @@
  */
 
 export type Theme = 'dark' | 'light';
+export type Language = 'en' | 'es' | 'fr' | 'ml' | 'de' | 'no' | 'pt' | 'uk' | 'vi' | 'zh';
 
 export interface Preferences {
   readonly favorites: readonly string[];
   readonly recents: readonly string[];
   readonly theme: Theme;
+  readonly language: Language;
 }
 
 const STORAGE_KEY = 'nexine.preferences.v1';
@@ -22,6 +24,7 @@ const DEFAULT_PREFERENCES: Preferences = {
   favorites: [],
   recents: [],
   theme: 'dark',
+  language: 'en',
 };
 
 type Listener = () => void;
@@ -35,6 +38,11 @@ function loadPreferences(): Preferences {
       favorites: Array.isArray(parsed.favorites) ? parsed.favorites.filter(isString) : [],
       recents: Array.isArray(parsed.recents) ? parsed.recents.filter(isString) : [],
       theme: parsed.theme === 'light' ? 'light' : 'dark',
+      language: ['en', 'es', 'fr', 'ml', 'de', 'no', 'pt', 'uk', 'vi', 'zh'].includes(
+        parsed.language as string,
+      )
+        ? (parsed.language as Language)
+        : 'en',
     };
   } catch {
     return DEFAULT_PREFERENCES;
@@ -79,6 +87,10 @@ class PreferencesStore {
 
   setTheme(theme: Theme): void {
     this.commit({ ...this.state, theme });
+  }
+
+  setLanguage(language: Language): void {
+    this.commit({ ...this.state, language });
   }
 
   /** Clear all locally stored preferences. */

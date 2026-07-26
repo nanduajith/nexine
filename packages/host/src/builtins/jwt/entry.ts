@@ -14,7 +14,7 @@ export default register((ctx) => ({
     const err = k.h('span', { class: 'nx-error' });
     const results = k.h('div', { class: 'nx-stack' });
     const tokenTa = k.textarea({
-      placeholder: 'Paste a JWT (header.payload.signature)…',
+      placeholder: ctx.t('Paste a JWT (header.payload.signature)…'),
       minHeight: 120,
       oninput: (v) => {
         token = v;
@@ -55,12 +55,12 @@ export default register((ctx) => ({
 
       const panels = k.grid2(
         k.panel({
-          title: 'Header',
+          title: ctx.t('Header'),
           actions: k.copyButton(() => headerJson),
           body: code(headerJson),
         }),
         k.panel({
-          title: 'Payload',
+          title: ctx.t('Payload'),
           actions: k.copyButton(() => payloadJson),
           body: code(payloadJson),
         }),
@@ -74,7 +74,7 @@ export default register((ctx) => ({
       if (rows.length > 0) {
         results.append(
           k.panel({
-            title: 'Time claims',
+            title: ctx.t('Time claims'),
             flush: true,
             body: k.table(
               rows.map((row) => [
@@ -87,7 +87,7 @@ export default register((ctx) => ({
       }
     }
 
-    const tokenField = k.field('Encoded token', tokenTa);
+    const tokenField = k.field(ctx.t('Encoded token'), tokenTa);
     tokenField.append(err);
 
     root.append(

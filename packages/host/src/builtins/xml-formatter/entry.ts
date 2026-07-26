@@ -4,7 +4,7 @@ import { createApp, register } from '../_kit';
 export default register((ctx) => ({
   mount(root) {
     const k = createApp(root, ctx);
-    const inp = k.textarea({ placeholder: '<xml>...' });
+    const inp = k.textarea({ placeholder: ctx.t('<xml>...') });
     const out = k.textarea({ readOnly: true, minHeight: 300 });
     out.classList.add('nx-mono');
     let min = false;
@@ -19,7 +19,7 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
+          title: ctx.t('Options'),
           body: k.h(
             'label',
             {},
@@ -34,9 +34,9 @@ export default register((ctx) => ({
           ),
         }),
         k.grid2(
-          k.panel({ title: 'Input XML', body: inp, flush: true }),
+          k.panel({ title: ctx.t('Input XML'), body: inp, flush: true }),
           k.panel({
-            title: 'Output',
+            title: ctx.t('Output'),
             actions: k.copyButton(() => out.value),
             body: out,
             flush: true,

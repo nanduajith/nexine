@@ -18,7 +18,7 @@ export default register((ctx) => ({
 
     const leftTa = k.textarea({
       value: left,
-      placeholder: 'Original…',
+      placeholder: ctx.t('Original…'),
       minHeight: 200,
       oninput: (v) => {
         left = v;
@@ -27,7 +27,7 @@ export default register((ctx) => ({
     });
     const rightTa = k.textarea({
       value: right,
-      placeholder: 'Changed…',
+      placeholder: ctx.t('Changed…'),
       minHeight: 200,
       oninput: (v) => {
         right = v;
@@ -65,7 +65,7 @@ export default register((ctx) => ({
         k.badge(`+${result.summary.added}`, 'success'),
         k.badge(`-${result.summary.removed}`, 'danger'),
         k.badge(`${result.summary.unchanged} unchanged`, 'neutral'),
-        result.identical ? k.badge('identical', 'primary') : k.h('span'),
+        result.identical ? k.badge(ctx.t('identical'), 'primary') : k.h('span'),
       );
       rows.replaceChildren();
       if (result.lines.length === 0) {
@@ -77,7 +77,7 @@ export default register((ctx) => ({
 
     root.append(
       k.stack(
-        k.grid2(k.field('Original', leftTa), k.field('Changed', rightTa)),
+        k.grid2(k.field(ctx.t('Original'), leftTa), k.field(ctx.t('Changed'), rightTa)),
         k.row(
           false,
           k.switchToggle(
@@ -97,7 +97,7 @@ export default register((ctx) => ({
             'Ignore case',
           ),
         ),
-        k.panel({ title: 'Difference', actions: summary, body: rows, flush: true }),
+        k.panel({ title: ctx.t('Difference'), actions: summary, body: rows, flush: true }),
       ),
     );
     update();

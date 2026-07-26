@@ -11,18 +11,18 @@ export default register((ctx) => ({
 
     const pubOut = k.textarea({
       readOnly: true,
-      placeholder: 'Public Key (PEM)...',
+      placeholder: ctx.t('Public Key (PEM)...'),
       minHeight: 180,
     });
     pubOut.classList.add('nx-mono');
     const privOut = k.textarea({
       readOnly: true,
-      placeholder: 'Private Key (PEM)...',
+      placeholder: ctx.t('Private Key (PEM)...'),
       minHeight: 300,
     });
     privOut.classList.add('nx-mono');
 
-    const generateBtn = k.button('Generate Key Pair', {
+    const generateBtn = k.button(ctx.t('Generate Key Pair'), {
       variant: 'primary',
       onClick: () => void generate(),
     });
@@ -50,16 +50,16 @@ export default register((ctx) => ({
     root.append(
       k.stack(
         k.panel({
-          title: 'Options',
+          title: ctx.t('Options'),
           body: k.row(
             true,
             k.field(
               'Key Size',
               k.segmented(
                 [
-                  { value: '1024', label: '1024-bit' },
-                  { value: '2048', label: '2048-bit' },
-                  { value: '4096', label: '4096-bit' },
+                  { value: '1024', label: ctx.t('1024-bit') },
+                  { value: '2048', label: ctx.t('2048-bit') },
+                  { value: '4096', label: ctx.t('4096-bit') },
                 ] as const,
                 String(length),
                 (v) => {
@@ -72,13 +72,13 @@ export default register((ctx) => ({
         }),
         k.grid2(
           k.panel({
-            title: 'Public Key',
+            title: ctx.t('Public Key'),
             actions: k.copyButton(() => pubOut.value),
             body: pubOut,
             flush: true,
           }),
           k.panel({
-            title: 'Private Key',
+            title: ctx.t('Private Key'),
             actions: k.copyButton(() => privOut.value),
             body: privOut,
             flush: true,
