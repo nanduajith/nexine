@@ -1,26 +1,40 @@
-name: Deploy docs site to GitHub Pages
+name: Deploy docs site + app demo to GitHub Pages
 
-# Publishes the static documentation site in `site/` to GitHub Pages whenever it
-# (or this workflow) changes on main. Enable Pages with "GitHub Actions" as the
-# source once, in the repository's Settings → Pages.
+# Publishes to GitHub Pages:
+#   /<repo>/      → the static documentation site (site/)
+#   /<repo>/app/  → a live, in-browser demo of the Nexine app
+# The demo is convenient for "try before you install"; it is NOT the hardened
+# deployment (GitHub Pages cannot send HTTP security headers, so frame-ancestors
+# / COOP / CORP are absent). The no-egress CSP still holds — it ships in the
+# app's <meta> tag — and is asserted below. For production, use the desktop app
+# or self-host (deploy/nginx.conf sends the full header set).
+#
+# Enable Pages with "GitHub Actions" as the source once, in Settings → Pages.
 on:
   push:
     branches: [main]
     paths:
       - 'site/**'
+      - 'packages/**'
+      - 'tools/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
-# Least privilege + the token scopes the Pages deployment needs.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Only one Pages deployment at a time; don't cancel an in-flight publish.
 concurrency:
   group: pages
   cancel-in-progress: false
+
+env:
+  PNPM_VERSION: 11.17.0
+  NODE_VERSION: 22
+  # The project site is served under /<repo>/, so the app demo lives at
+  # /<repo>/app/. Vite reads this to prefix asset URLs (see vite.config.ts).
+  NEXINE_BASE: /nexine/app/
 
 jobs:
   deploy:
@@ -30,11 +44,40 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build the app for the Pages subpath
+        run: pnpm build # NEXINE_BASE (env, above) prefixes assets with /nexine/app/
+
+      - name: Verify the no-egress CSP is present in the demo build
+        run: |
+          if grep -q "connect-src 'none'" packages/host/dist/index.html; then
+            echo "✓ Strict no-egress CSP present in the app demo."
+          else
+            echo "::error::App demo build is missing connect-src 'none' — the no-egress guarantee is broken."
+            exit 1
+          fi
+
+      - name: Assemble the Pages bundle (docs at root, app under /app)
+        run: |
+          rm -rf _site
+          mkdir -p _site/app
+          cp -r site/. _site/
+          cp -r packages/host/dist/. _site/app/
+
       - uses: actions/configure-pages@v5
-      - name: Upload the site as a Pages artifact
+      - name: Upload the Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

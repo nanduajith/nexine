@@ -29,6 +29,10 @@ function cspPlugin(isDev: boolean): Plugin {
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve';
   return {
+    // Served from the origin root by default (desktop app, Docker/nginx self-host,
+    // dev). The GitHub Pages *demo* build overrides this to its subpath via
+    // NEXINE_BASE=/nexine/app/ so asset URLs resolve under the project site.
+    base: process.env['NEXINE_BASE'] ?? '/',
     plugins: [tsconfigPaths(), react(), tailwindcss(), cspPlugin(isDev), builtinsPlugin()],
     server: { port: 5273 },
     preview: { port: 4273 },

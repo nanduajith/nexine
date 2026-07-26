@@ -288,6 +288,16 @@ body::before {
   gap: 12px;
   margin-top: 26px;
 }
+.demo-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--fg-subtle);
+  max-width: 560px;
+}
+.demo-note b {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
 .hero-badges {
   display: flex;
   flex-wrap: wrap;
