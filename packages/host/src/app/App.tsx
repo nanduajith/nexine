@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { AboutView } from '../features/about/AboutView';
 import { CommandPalette } from '../features/command-palette/CommandPalette';
+import { HomeView } from '../features/home/HomeView';
 import { SettingsView } from '../features/plugins/SettingsView';
 import { Sidebar } from '../features/shell/Sidebar';
 import { TopBar } from '../features/shell/TopBar';
@@ -13,6 +15,8 @@ import { useTools } from './hooks/useTools';
 
 /** Reserved route id for the Settings surface (not a tool). */
 const SETTINGS_ROUTE = 'settings';
+/** Reserved route id for the About page. */
+const ABOUT_ROUTE = 'about';
 
 export function App() {
   const [activeId, navigate] = useHashRoute();
@@ -22,8 +26,10 @@ export function App() {
   const { registry } = sections;
 
   const isSettings = activeId === SETTINGS_ROUTE;
-  // Resolve the active tool, falling back to the first tool for unknown/empty routes.
-  const currentTool = registry.get(activeId) ?? registry.all()[0];
+  const isAbout = activeId === ABOUT_ROUTE;
+  // Resolve the active tool
+  const currentTool = registry.get(activeId);
+  const isHome = activeId === '' || (!isSettings && !isAbout && !currentTool);
 
   // Apply the theme to the document root.
   useEffect(() => {
@@ -82,6 +88,21 @@ export function App() {
               <SettingsView />
             </main>
           </>
+        ) : isAbout ? (
+          <>
+            <TopBar title="About" description="Project philosophy and links" icon="Info" />
+            <main className="flex-1 overflow-y-auto bg-[var(--nx-bg)]">
+              <AboutView />
+            </main>
+          </>
+        ) : isHome ? (
+          <main className="flex-1 overflow-y-auto bg-[var(--nx-bg)]">
+            <HomeView
+              onNavigate={navigate}
+              onOpenPalette={() => setPaletteOpen(true)}
+              sections={sections}
+            />
+          </main>
         ) : currentTool && ToolView ? (
           <>
             <TopBar tool={currentTool} />

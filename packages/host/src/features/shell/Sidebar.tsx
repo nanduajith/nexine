@@ -1,6 +1,6 @@
 import { getCategory } from '@nexine/core';
 import { cn, Kbd, type ToolModule } from '@nexine/ui';
-import { Search, Settings, ShieldCheck, Star } from 'lucide-react';
+import { Home, Info, Lock, Search, Settings, ShieldCheck, Star } from 'lucide-react';
 import { type ReactNode } from 'react';
 
 import { usePreferences } from '../../app/hooks/usePreferences';
@@ -33,7 +33,27 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
         </span>
       </div>
 
-      <div className="px-3 py-3">
+      <div className="px-3 py-3 space-y-1">
+        <button
+          type="button"
+          onClick={() => onNavigate('')}
+          className={cn(
+            'flex w-full items-center gap-2.5 rounded-[var(--nx-radius)] px-3 py-1.5 text-sm font-medium transition-colors mb-2',
+            activeId === '' || (!sections.registry.get(activeId) && activeId !== 'settings')
+              ? 'bg-[var(--nx-primary-soft)] text-[var(--nx-fg)]'
+              : 'text-[var(--nx-fg-muted)] hover:bg-[var(--nx-surface-2)] hover:text-[var(--nx-fg)]',
+          )}
+        >
+          <Home
+            size={16}
+            className={cn(
+              activeId === '' || (!sections.registry.get(activeId) && activeId !== 'settings')
+                ? 'text-[var(--nx-primary)]'
+                : '',
+            )}
+          />
+          <span>Home</span>
+        </button>
         <button
           type="button"
           onClick={onOpenPalette}
@@ -75,25 +95,16 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
         ))}
       </nav>
 
-      <div className="border-t border-[var(--nx-border)] p-2">
+      <div className="border-t border-[var(--nx-border)] p-2 space-y-0.5">
         {!pluginAdapter.supportsPlugins && (
-          <div className="mb-2 rounded-[var(--nx-radius)] border border-[var(--nx-border-strong)] bg-[var(--nx-surface-2)] p-2.5 text-xs text-[var(--nx-fg)]">
-            <p className="mb-2 font-medium">Want the global hotkey?</p>
-            <p className="mb-3 text-[var(--nx-fg-subtle)]">
-              Get the desktop app to unlock{' '}
-              <kbd className="rounded border border-[var(--nx-border-strong)] bg-[var(--nx-bg)] px-1 font-mono text-[10px]">
-                ⌘⇧Space
-              </kbd>{' '}
-              from anywhere.
-            </p>
-            <button
-              type="button"
-              onClick={() => window.open('https://github.com/nanduajith/nexine/releases', '_blank')}
-              className="w-full rounded-[var(--nx-radius)] border border-[var(--nx-border-strong)] bg-[var(--nx-surface-3)] px-2 py-1 font-medium transition-colors hover:bg-[var(--nx-border)]"
-            >
-              Download App
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => window.open('https://github.com/nanduajith/nexine/releases', '_blank')}
+            className="flex w-full items-center gap-2.5 rounded-[var(--nx-radius)] px-3 py-2 text-sm text-[var(--nx-fg-subtle)] transition-all hover:text-[var(--nx-fg)] hover:bg-[var(--nx-surface-2)] mb-1"
+          >
+            <Lock size={16} className="shrink-0" />
+            <span className="truncate font-medium">Plugins require App</span>
+          </button>
         )}
         <button
           type="button"
@@ -110,6 +121,22 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
             className={cn('shrink-0', activeId === 'settings' && 'text-[var(--nx-primary)]')}
           />
           <span className="font-medium">Settings</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigate('about')}
+          className={cn(
+            'flex w-full items-center gap-2.5 rounded-[var(--nx-radius)] px-3 py-2 text-sm transition-colors',
+            activeId === 'about'
+              ? 'bg-[var(--nx-primary-soft)] text-[var(--nx-fg)]'
+              : 'text-[var(--nx-fg-muted)] hover:bg-[var(--nx-surface-2)]',
+          )}
+        >
+          <Info
+            size={16}
+            className={cn('shrink-0', activeId === 'about' && 'text-[var(--nx-primary)]')}
+          />
+          <span className="font-medium">About</span>
         </button>
       </div>
     </aside>
