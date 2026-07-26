@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "diff",
+  "name": "Text Diff",
+  "version": "1.0.0",
+  "description": "Compare two blocks of text line by line and see what changed.",
+  "category": "text",
+  "author": "Nexine",
+  "icon": "FileDiff",
+  "keywords": ["diff", "compare", "changes", "delta", "text", "merge"],
+  "permissions": [],
+  "entry": "plugin.js"
+}

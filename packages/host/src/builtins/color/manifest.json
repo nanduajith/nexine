@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "color",
+  "name": "Color Converter",
+  "version": "1.0.0",
+  "description": "Convert colors between HEX, RGB, and HSL, with a live preview.",
+  "category": "web",
+  "author": "Nexine",
+  "icon": "Palette",
+  "keywords": ["color", "colour", "hex", "rgb", "hsl", "rgba", "hsla", "convert"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}

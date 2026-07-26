@@ -91,6 +91,18 @@ importers:
       '@nexine/tool-case':
         specifier: workspace:*
         version: link:../../tools/case
+      '@nexine/tool-color':
+        specifier: workspace:*
+        version: link:../../tools/color
+      '@nexine/tool-cron':
+        specifier: workspace:*
+        version: link:../../tools/cron
+      '@nexine/tool-diff':
+        specifier: workspace:*
+        version: link:../../tools/diff
+      '@nexine/tool-dotenv':
+        specifier: workspace:*
+        version: link:../../tools/dotenv
       '@nexine/tool-hash':
         specifier: workspace:*
         version: link:../../tools/hash
@@ -227,6 +239,26 @@ importers:
         version: link:../../packages/core
 
   tools/case:
+    dependencies:
+      '@nexine/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
+  tools/color:
+    dependencies:
+      '@nexine/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
+  tools/cron:
+    dependencies:
+      '@nexine/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
+  tools/diff: {}
+
+  tools/dotenv:
     dependencies:
       '@nexine/core':
         specifier: workspace:*

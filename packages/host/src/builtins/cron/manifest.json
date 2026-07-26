@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "id": "cron",
+  "name": "Cron Explainer",
+  "version": "1.0.0",
+  "description": "Explain a cron expression in plain language and preview upcoming run times.",
+  "category": "time",
+  "author": "Nexine",
+  "icon": "CalendarClock",
+  "keywords": ["cron", "crontab", "schedule", "job", "expression", "next run"],
+  "permissions": [{ "id": "clipboard", "access": "write" }],
+  "entry": "plugin.js"
+}
