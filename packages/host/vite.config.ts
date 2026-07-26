@@ -9,6 +9,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { buildContentSecurityPolicy } from '../core/src/security/csp';
 
 import { builtinsPlugin } from './src/builtins/vite-builtins';
+import { sandboxPlugin } from './src/sandbox/vite-sandbox';
 
 /**
  * Injects the Content-Security-Policy as a <meta> tag into index.html. Production
@@ -33,7 +34,14 @@ export default defineConfig(({ command }) => {
     // dev). The GitHub Pages *demo* build overrides this to its subpath via
     // NEXINE_BASE=/nexine/app/ so asset URLs resolve under the project site.
     base: process.env['NEXINE_BASE'] ?? '/',
-    plugins: [tsconfigPaths(), react(), tailwindcss(), cspPlugin(isDev), builtinsPlugin()],
+    plugins: [
+      tsconfigPaths(),
+      react(),
+      tailwindcss(),
+      cspPlugin(isDev),
+      builtinsPlugin(),
+      sandboxPlugin(),
+    ],
     server: { port: 5273 },
     preview: { port: 4273 },
     build: {

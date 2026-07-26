@@ -22,6 +22,8 @@ export interface LoadPluginInput {
   readonly manifest: unknown;
   /** The plugin's self-contained ES module source. */
   readonly pluginSource: string;
+  /** URL of the app's static sandbox document (e.g. `${BASE_URL}sandbox.html`). */
+  readonly sandboxDocUrl: string;
   /** Active governance policy; defaults to the permissive individual-developer policy. */
   readonly policy?: PluginPolicy;
   /** Storage backend override (tests / desktop); defaults to `localStorage`. */
@@ -99,6 +101,7 @@ export function loadPlugin(input: LoadPluginInput): LoadPluginResult {
     manifest,
     granted: resolution.granted,
     pluginSource: input.pluginSource,
+    sandboxDocUrl: input.sandboxDocUrl,
     services,
     ...(input.onFatal ? { onFatal: input.onFatal } : {}),
   });

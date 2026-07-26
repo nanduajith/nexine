@@ -14,4 +14,8 @@ export { createToolRegistry } from './tools/registry';
 
 // Security primitives
 export type { CspOptions } from './security/csp';
-export { buildContentSecurityPolicy, NO_EGRESS_CONNECT_SRC } from './security/csp';
+export {
+  buildContentSecurityPolicy,
+  buildSandboxDocumentCsp,
+  NO_EGRESS_CONNECT_SRC,
+} from './security/csp';

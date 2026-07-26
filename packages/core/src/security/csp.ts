@@ -63,3 +63,39 @@ export function buildContentSecurityPolicy(options: CspOptions = {}): string {
 
 /** The connect-src token that encodes "no network egress". Exposed for tests. */
 export const NO_EGRESS_CONNECT_SRC = "connect-src 'none'";
+
+/**
+ * The CSP for the static plugin **sandbox document** (`sandbox.html`).
+ *
+ * Plugins load in an iframe pointed at this real, same-origin document — NOT a
+ * `srcdoc`/`blob:`/`data:` document. A real-scheme document does not inherit the
+ * app's strict `script-src 'self'`, so this policy alone governs it: the bundled
+ * guest loads as `'self'`, the untrusted plugin runs as an in-memory `blob:`
+ * script, and — crucially — `connect-src 'none'` denies the plugin every network
+ * connection. The iframe's `sandbox="allow-scripts"` (no `allow-same-origin`) still
+ * forces an opaque origin, so the plugin can touch neither the host DOM nor its
+ * storage. `object-src`/`base-uri`/`form-action`/`frame-src` are all locked to
+ * `'none'`; `default-src 'none'` denies anything not re-enabled below.
+ */
+export function buildSandboxDocumentCsp(): string {
+  const directives: Directives = {
+    'default-src': ["'none'"],
+    // Bundled guest is same-origin ('self'); untrusted plugin code runs as blob:.
+    'script-src': ["'self'", 'blob:'],
+    // Plugin UI sets inline styles (cannot exfiltrate); a Worker may run from blob:.
+    'style-src': ["'unsafe-inline'", 'blob:'],
+    'img-src': ["'self'", 'data:', 'blob:'],
+    'font-src': ["'self'", 'data:', 'blob:'],
+    'worker-src': ['blob:'],
+    // The plugin gets no network at all from the static sandbox document.
+    'connect-src': ["'none'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'none'"],
+    'form-action': ["'none'"],
+    'frame-src': ["'none'"],
+    'child-src': ["'none'"],
+  };
+  return Object.entries(directives)
+    .map(([name, values]) => `${name} ${values.join(' ')}`)
+    .join('; ');
+}

@@ -102,6 +102,8 @@ export async function inspectPackage(input: InspectPackageInput): Promise<Inspec
 }
 
 export interface LoadPackageInput extends InspectPackageInput {
+  /** URL of the app's static sandbox document (e.g. `${BASE_URL}sandbox.html`). */
+  readonly sandboxDocUrl: string;
   readonly storageBackend?: KeyValueBackend;
   readonly onFatal?: (message: string) => void;
 }
@@ -130,6 +132,7 @@ export async function loadPackage(input: LoadPackageInput): Promise<LoadPackageR
   const loaded = loadPlugin({
     manifest: inspected.manifest,
     pluginSource: inspected.code,
+    sandboxDocUrl: input.sandboxDocUrl,
     ...(input.policy ? { policy: input.policy } : {}),
     ...(input.storageBackend ? { storageBackend: input.storageBackend } : {}),
     ...(input.onFatal ? { onFatal: input.onFatal } : {}),

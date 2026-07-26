@@ -12,5 +12,4 @@ export type {
   StorageApi,
 } from './api';
 export { definePlugin, PermissionDeniedError } from './api';
-export type { GuestBootstrapConfig } from './bootstrap';
-export { nexineGuestBootstrap } from './bootstrap';
+export { runNexineGuest } from './bootstrap';
