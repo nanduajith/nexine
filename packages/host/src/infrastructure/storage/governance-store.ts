@@ -15,6 +15,7 @@ import {
   type TrustedPublisher,
 } from '@nexine/packaging';
 import type { PluginPolicy } from '@nexine/plugin-runtime';
+import { isNetworkPermission, type Permission } from '@nexine/sdk';
 
 import { auditStore } from './audit-store';
 
@@ -137,13 +138,14 @@ class GovernanceStore {
     pluginId: string,
     version: string,
     decision: ConsentDecision,
-    grantedPermissionIds: readonly string[],
+    granted: readonly Permission[],
   ): void {
+    const grantedPermissionIds = granted.map((p) => p.id);
     const record: ConsentRecord = {
       pluginId,
       version,
       decision,
-      grantedPermissionIds: [...grantedPermissionIds],
+      grantedPermissionIds,
       at: Date.now(),
     };
     this.commit({ ...this.state, consents: { ...this.state.consents, [pluginId]: record } });
@@ -152,6 +154,14 @@ class GovernanceStore {
       pluginId,
       grantedPermissionIds.join(', ') || undefined,
     );
+    // Egress is notable: record which hosts a plugin was actually granted (the
+    // effective connect-src), metadata only — never a payload.
+    if (decision === 'granted') {
+      const net = granted.find(isNetworkPermission);
+      if (net && net.hosts.length > 0) {
+        auditStore.record('network.grant', pluginId, net.hosts.join(', '));
+      }
+    }
   }
 
   revokeConsent(pluginId: string): void {
@@ -172,6 +182,52 @@ class GovernanceStore {
     const blocked = (this.state.policy.blockedPlugins ?? []).filter((id) => id !== pluginId);
     this.commit({ ...this.state, policy: { ...this.state.policy, blockedPlugins: blocked } });
     auditStore.record('plugin.unblock', pluginId);
+  }
+
+  private commitPolicy(policy: PluginPolicy): void {
+    this.commit({ ...this.state, policy });
+  }
+
+  /** Flip the egress posture: when true, network is denied unless a host is allow-listed. */
+  setNetworkExplicitAllow(value: boolean): void {
+    this.commitPolicy({ ...this.state.policy, networkRequiresExplicitAllow: value });
+    auditStore.record('policy.update', 'network egress', value ? 'require allow-list' : 'open');
+  }
+
+  /** Add a host to the global egress allow-list (idempotent). */
+  addAllowedHost(host: string): void {
+    const hosts = new Set(this.state.policy.allowedHosts ?? []);
+    hosts.add(host);
+    this.commitPolicy({ ...this.state.policy, allowedHosts: [...hosts] });
+    auditStore.record('policy.update', 'allowed host', `+ ${host}`);
+  }
+
+  removeAllowedHost(host: string): void {
+    const hosts = (this.state.policy.allowedHosts ?? []).filter((h) => h !== host);
+    const { allowedHosts: _drop, ...rest } = this.state.policy;
+    this.commitPolicy(hosts.length > 0 ? { ...rest, allowedHosts: hosts } : rest);
+    auditStore.record('policy.update', 'allowed host', `− ${host}`);
+  }
+
+  /** Grant a host to one specific plugin (extends only that plugin's ceiling). */
+  addPluginHost(pluginId: string, host: string): void {
+    const current = this.state.policy.pluginHosts ?? {};
+    const hosts = new Set(current[pluginId] ?? []);
+    hosts.add(host);
+    const pluginHosts = { ...current, [pluginId]: [...hosts] };
+    this.commitPolicy({ ...this.state.policy, pluginHosts });
+    auditStore.record('policy.update', pluginId, `+ ${host}`);
+  }
+
+  removePluginHost(pluginId: string, host: string): void {
+    const current = this.state.policy.pluginHosts ?? {};
+    const remaining = (current[pluginId] ?? []).filter((h) => h !== host);
+    const next: Record<string, readonly string[]> = { ...current };
+    if (remaining.length > 0) next[pluginId] = remaining;
+    else delete next[pluginId];
+    const { pluginHosts: _drop, ...rest } = this.state.policy;
+    this.commitPolicy(Object.keys(next).length > 0 ? { ...rest, pluginHosts: next } : rest);
+    auditStore.record('policy.update', pluginId, `− ${host}`);
   }
 
   /** The current pinned publishers as a `TrustStore`, ready for `verifyPackage`. */

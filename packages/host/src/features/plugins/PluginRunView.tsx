@@ -164,12 +164,7 @@ function ConsentCard({
   const { manifest } = source;
 
   const allow = () =>
-    governanceStore.recordConsent(
-      manifest.id,
-      manifest.version,
-      'granted',
-      resolution.granted.map((p) => p.id),
-    );
+    governanceStore.recordConsent(manifest.id, manifest.version, 'granted', resolution.granted);
   const deny = () => governanceStore.recordConsent(manifest.id, manifest.version, 'denied', []);
 
   return (

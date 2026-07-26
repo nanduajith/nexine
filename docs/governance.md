@@ -34,19 +34,42 @@ your decision. In **Settings → Publisher trust** you can:
 The permission engine supports a graduated posture (the plan's _observe → blocklist →
 lockdown_ ladder). A `PluginPolicy` has:
 
-| Field               | Effect                                                                   |
-| ------------------- | ------------------------------------------------------------------------ |
-| `mode: 'allow'`     | Plugins load unless explicitly blocked (the DIY/observe default).        |
-| `mode: 'blocklist'` | Same as allow, but the block list is the primary control.                |
-| `mode: 'lockdown'`  | Only ids in `allowedPlugins` may load; everything else is denied.        |
-| `blockedPlugins`    | Ids that never load, in any mode.                                        |
-| `allowedPlugins`    | The allowlist consulted under `lockdown`.                                |
-| `deniedPermissions` | Permission ids stripped from every plugin (a ceiling).                   |
-| `allowedHosts`      | A global network-host ceiling that narrows any plugin's `network` grant. |
+| Field                          | Effect                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| `mode: 'allow'`                | Plugins load unless explicitly blocked (the DIY/observe default).        |
+| `mode: 'blocklist'`            | Same as allow, but the block list is the primary control.                |
+| `mode: 'lockdown'`             | Only ids in `allowedPlugins` may load; everything else is denied.        |
+| `blockedPlugins`               | Ids that never load, in any mode.                                        |
+| `allowedPlugins`               | The allowlist consulted under `lockdown`.                                |
+| `deniedPermissions`            | Permission ids stripped from every plugin (a ceiling).                   |
+| `allowedHosts`                 | A global network-host ceiling that narrows any plugin's `network` grant. |
+| `networkRequiresExplicitAllow` | The egress posture (see below).                                          |
+| `pluginHosts`                  | Per-plugin network-host grants, keyed by plugin id.                      |
 
 Resolution is: block list → mode (lockdown allowlist) → per-permission ceilings → network-host
 narrowing. Capabilities that don't survive resolution are simply not granted, and the plugin's
 iframe CSP reflects the narrowed result.
+
+## Controlling egress
+
+Nexine does not have to _cripple_ a plugin to keep egress under control — network access is a
+**scoped, admin-granted capability**, not an on/off switch. Two policy fields govern it:
+
+- **`networkRequiresExplicitAllow`** sets the posture:
+  - `false` (the DIY default) — **open**: a plugin's declared hosts are granted as-is (still
+    narrowed by `allowedHosts`/`pluginHosts` if you set them).
+  - `true` (the enterprise posture) — **default-deny egress**: a `network` permission is granted
+    _only_ for hosts you explicitly allow-list. A plugin keeps all its other capabilities; it just
+    can't reach the network until an admin names a host.
+- **`allowedHosts`** is the global allow-list, and **`pluginHosts`** grants extra hosts to _one_
+  specific plugin — e.g. letting a single tool reach an internal JWKS endpoint that no other plugin
+  may touch.
+
+A plugin's granted hosts become its iframe's `connect-src`; a plugin with no granted host gets
+`connect-src 'none'`. Crucially, **the host is never a proxy** and the app document itself always
+ships `connect-src 'none'`, so granting a plugin scoped egress never weakens the app-wide no-egress
+guarantee. This bounds _where_ a plugin can connect (exact origins), not _what_ it sends — payload
+inspection would require a proxy, which would defeat the guarantee for everyone.
 
 ## The policy file
 
@@ -56,7 +79,16 @@ can distribute across devices (the DIY tier of fleet policy):
 ```jsonc
 {
   "version": 1,
-  "policy": { "mode": "allow", "blockedPlugins": [] },
+  "policy": {
+    "mode": "allow",
+    "blockedPlugins": [],
+    // Default-deny egress: no plugin reaches the network unless allow-listed below.
+    "networkRequiresExplicitAllow": true,
+    "allowedHosts": ["https://jwks.corp.example"], // every plugin may reach this
+    "pluginHosts": {
+      "dev.acme.reporter": ["https://reports.corp.example"], // only this plugin
+    },
+  },
   "trust": { "publishers": [/* pinned public keys */], "requireTrusted": false },
   "disabledBuiltins": [/* builtin ids removed from the tool list */],
 }

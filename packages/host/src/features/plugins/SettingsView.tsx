@@ -6,12 +6,15 @@ import {
   Blocks,
   Download,
   ExternalLink,
+  Globe,
   type LucideIcon,
+  Plus,
   Puzzle,
   ScrollText,
   ShieldCheck,
   SlidersHorizontal,
   Upload,
+  X,
 } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
@@ -177,12 +180,7 @@ function PreviewPanel({ pkg, onDone }: { pkg: unknown; onDone: () => void }) {
   const blockedByTrust = governance.trust.requireTrusted && !okSigner.trusted;
 
   const install = () => {
-    governanceStore.recordConsent(
-      manifest.id,
-      manifest.version,
-      'granted',
-      resolution.granted.map((p) => p.id),
-    );
+    governanceStore.recordConsent(manifest.id, manifest.version, 'granted', resolution.granted);
     governanceStore.installPackage(manifest.id, pkg as PluginPackage);
     onDone();
   };
@@ -413,6 +411,201 @@ function TrustPanel() {
   );
 }
 
+/** True for an exact https origin (http only for localhost), no path/query/fragment/wildcard. */
+function isValidEgressHost(host: string): boolean {
+  try {
+    const u = new URL(host);
+    const local = u.hostname === 'localhost' || u.hostname === '127.0.0.1';
+    return (
+      (u.protocol === 'https:' || (u.protocol === 'http:' && local)) &&
+      u.pathname === '/' &&
+      u.search === '' &&
+      u.hash === '' &&
+      !host.includes('*')
+    );
+  } catch {
+    return false;
+  }
+}
+
+const EGRESS_INPUT_CLASS =
+  'min-w-[180px] flex-1 rounded-[var(--nx-radius)] border border-[var(--nx-border)] bg-[var(--nx-surface-2)] px-3 py-1.5 font-mono text-xs text-[var(--nx-fg)] placeholder:text-[var(--nx-fg-subtle)] focus:border-[var(--nx-fg-subtle)] focus:outline-none';
+
+/** A removable chip list of hosts. */
+function HostChips({
+  hosts,
+  onRemove,
+}: {
+  hosts: readonly string[];
+  onRemove: (h: string) => void;
+}) {
+  if (hosts.length === 0) {
+    return <div className="text-xs text-[var(--nx-fg-subtle)]">None yet.</div>;
+  }
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {hosts.map((h) => (
+        <li
+          key={h}
+          className="inline-flex items-center gap-1.5 rounded-[var(--nx-radius)] border border-[var(--nx-border)] bg-[var(--nx-surface-2)] px-2 py-1 font-mono text-xs text-[var(--nx-fg)]"
+        >
+          {h}
+          <button
+            type="button"
+            aria-label={`Remove ${h}`}
+            onClick={() => onRemove(h)}
+            className="text-[var(--nx-fg-subtle)] hover:text-[var(--nx-fg)]"
+          >
+            <X size={12} />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Govern plugin network egress: the allow-list posture, a global host allow-list,
+ * and per-plugin host grants. These edit the local `PluginPolicy`; an org can also
+ * distribute them via the exported policy file. The granted hosts become each
+ * plugin's iframe `connect-src`; the app document itself always stays no-egress.
+ */
+function EgressPanel() {
+  const { policy } = useGovernance();
+  const requireExplicit = policy.networkRequiresExplicitAllow ?? false;
+  const allowedHosts = policy.allowedHosts ?? [];
+  const pluginHosts = policy.pluginHosts ?? {};
+
+  const [host, setHost] = useState('');
+  const [hostError, setHostError] = useState<string | null>(null);
+  const [pid, setPid] = useState('');
+  const [pluginHost, setPluginHost] = useState('');
+  const [pluginError, setPluginError] = useState<string | null>(null);
+
+  const addHost = () => {
+    const h = host.trim();
+    if (!isValidEgressHost(h)) {
+      setHostError('Enter an exact https origin, e.g. https://api.example.com');
+      return;
+    }
+    governanceStore.addAllowedHost(h);
+    setHost('');
+    setHostError(null);
+  };
+
+  const addPluginHost = () => {
+    const id = pid.trim();
+    const h = pluginHost.trim();
+    if (!id) return setPluginError('Enter the plugin id.');
+    if (!isValidEgressHost(h)) return setPluginError('Enter an exact https origin.');
+    governanceStore.addPluginHost(id, h);
+    setPid('');
+    setPluginHost('');
+    setPluginError(null);
+  };
+
+  const pluginEntries = Object.entries(pluginHosts).filter(([, hs]) => hs.length > 0);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Panel>
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm text-[var(--nx-fg)]">
+            Require an allow-list for network egress
+            <span className="block text-xs text-[var(--nx-fg-subtle)]">
+              When on, a plugin gets no network access unless a host below permits it — even if it
+              requests one. Every other capability is unaffected.
+            </span>
+          </span>
+          <Switch
+            checked={requireExplicit}
+            onChange={(v) => governanceStore.setNetworkExplicitAllow(v)}
+            aria-label="Require an allow-list for network egress"
+          />
+        </label>
+      </Panel>
+
+      <Panel
+        title="Global allow-list"
+        description="Exact https origins every plugin may connect to."
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <input
+              value={host}
+              onChange={(e) => {
+                setHost(e.target.value);
+                setHostError(null);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && addHost()}
+              placeholder="https://api.example.com"
+              className={EGRESS_INPUT_CLASS}
+              aria-label="Host to allow"
+            />
+            <Button variant="secondary" size="sm" onClick={addHost}>
+              <Plus size={13} className="mr-1" />
+              Add
+            </Button>
+          </div>
+          {hostError && <Notice tone="danger">{hostError}</Notice>}
+          <HostChips hosts={allowedHosts} onRemove={(h) => governanceStore.removeAllowedHost(h)} />
+        </div>
+      </Panel>
+
+      <Panel
+        title="Per-plugin grants"
+        description="Extra hosts granted to a single plugin by id — e.g. one tool's internal endpoint that others may not reach."
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <input
+              value={pid}
+              onChange={(e) => {
+                setPid(e.target.value);
+                setPluginError(null);
+              }}
+              placeholder="plugin id (e.g. dev.acme.reporter)"
+              className={EGRESS_INPUT_CLASS}
+              aria-label="Plugin id"
+            />
+            <input
+              value={pluginHost}
+              onChange={(e) => {
+                setPluginHost(e.target.value);
+                setPluginError(null);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && addPluginHost()}
+              placeholder="https://internal.example.com"
+              className={EGRESS_INPUT_CLASS}
+              aria-label="Host to grant this plugin"
+            />
+            <Button variant="secondary" size="sm" onClick={addPluginHost}>
+              <Plus size={13} className="mr-1" />
+              Grant
+            </Button>
+          </div>
+          {pluginError && <Notice tone="danger">{pluginError}</Notice>}
+          {pluginEntries.length === 0 ? (
+            <div className="text-xs text-[var(--nx-fg-subtle)]">No per-plugin grants.</div>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {pluginEntries.map(([id, hs]) => (
+                <li
+                  key={id}
+                  className="rounded-[var(--nx-radius)] border border-[var(--nx-border)] bg-[var(--nx-surface-2)] px-3 py-2"
+                >
+                  <div className="mb-1.5 font-mono text-xs text-[var(--nx-fg)]">{id}</div>
+                  <HostChips hosts={hs} onRemove={(h) => governanceStore.removePluginHost(id, h)} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
 /** Export the shareable governance policy to a file, or import one back. */
 function PolicyPanel() {
   const [error, setError] = useState<string | null>(null);
@@ -481,6 +674,8 @@ const AUDIT_COPY: Record<AuditEventType, string> = {
   'publisher.pin': 'Pinned publisher',
   'publisher.unpin': 'Unpinned publisher',
   'policy.import': 'Imported policy',
+  'policy.update': 'Updated policy',
+  'network.grant': 'Granted network egress',
 };
 
 const AUDIT_TONE: Partial<Record<AuditEventType, 'success' | 'danger' | 'warning'>> = {
@@ -492,6 +687,7 @@ const AUDIT_TONE: Partial<Record<AuditEventType, 'success' | 'danger' | 'warning
   'plugin.uninstall': 'warning',
   'builtin.remove': 'warning',
   'consent.revoke': 'warning',
+  'network.grant': 'warning',
 };
 
 /** The on-device governance audit log — metadata only, never payloads. */
@@ -600,10 +796,18 @@ const SECTIONS: readonly SettingsSection[] = [
     render: () => <TrustPanel />,
   },
   {
+    id: 'egress',
+    label: 'Egress control',
+    description:
+      'Govern which hosts plugins may reach. Turn on the allow-list to deny egress by default, then permit exact origins globally or per plugin. The app itself never makes network requests.',
+    icon: Globe,
+    render: () => <EgressPanel />,
+  },
+  {
     id: 'policy',
     label: 'Policy file',
     description:
-      'Export your governance policy — mode, blocked plugins, trusted publishers, removed builtins — to share across devices, or import one. Consents and installs stay local.',
+      'Export your governance policy — mode, blocked plugins, trusted publishers, egress rules, removed builtins — to share across devices, or import one. Consents and installs stay local.',
     icon: SlidersHorizontal,
     render: () => <PolicyPanel />,
   },

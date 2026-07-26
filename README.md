@@ -6,8 +6,8 @@ Your data never leaves your machine.
 <!-- prettier-ignore-start -->
 [![CI](https://github.com/nanduajith/nexine/actions/workflows/ci.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
 [![Release](https://github.com/nanduajith/nexine/actions/workflows/release.yml/badge.svg)](https://github.com/nanduajith/nexine/actions/workflows/release.yml)
-[![Tests](https://img.shields.io/badge/tests-115%20passing-2ea44f)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
-[![Egress](https://img.shields.io/badge/network%20egress-none-2ea44f)](docs/security-model.md)
+[![Tests](https://img.shields.io/badge/tests-119%20passing-2ea44f)](https://github.com/nanduajith/nexine/actions/workflows/ci.yml)
+[![Egress](https://img.shields.io/badge/network%20egress-deny--by--default-2ea44f)](docs/security-model.md)
 [![Platform](https://img.shields.io/badge/platform-desktop%20%7C%20web-6366f1)](#desktop-app-tauri)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8b5cf6)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-site-8b5cf6)](https://nanduajith.github.io/nexine/)
@@ -38,6 +38,10 @@ verified by an automated test (`connect-src 'none'` present, `unsafe-eval` never
 fs/network), a Nexine plugin gets **deterministic, host-enforced network denial**. Its iframe
 ships `connect-src 'none'` unless an admin grants a scoped, _declared_ network permission — and
 even then the host is never a proxy, so the app-wide no-egress guarantee can't leak.
+
+Egress is therefore a **governed, opt-in capability, not a limitation**: an org can set network
+to _deny-by-default_ and then allow exact hosts globally or per plugin (**Settings → Egress
+control**, or a distributed policy file). See [`docs/governance.md`](docs/governance.md#controlling-egress).
 
 See [`docs/security-model.md`](docs/security-model.md) for exactly how this is enforced and its
 honest non-goals.
@@ -103,7 +107,8 @@ from (bundled in the app vs. a signed package on disk).
   a `.nexpkg` is a manifest + a bundled classic-script module + a detached **Ed25519** signature.
   The `nexine` CLI does `keygen / pack / verify / inspect`, entirely locally.
 - **DIY governance** — install-time consent (per plugin _and_ version), publisher trust, graduated
-  policy modes (`allow → blocklist → lockdown`), a shareable **policy file**, and a metadata-only
+  policy modes (`allow → blocklist → lockdown`), **egress control** (deny-by-default network with
+  global and per-plugin host allow-lists), a shareable **policy file**, and a metadata-only
   **audit log**. All on-device; no account.
 
 Build one in [`docs/plugins.md`](docs/plugins.md); a working reference lives in
