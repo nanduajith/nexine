@@ -5,6 +5,7 @@ import { type ReactNode } from 'react';
 
 import { usePreferences } from '../../app/hooks/usePreferences';
 import type { ToolSections } from '../../app/hooks/useTools';
+import { pluginAdapter } from '../../infrastructure/platform/plugin-adapter';
 import { preferencesStore } from '../../infrastructure/storage/preferences-store';
 import { toolIcon } from '../../lib/icons';
 
@@ -75,6 +76,25 @@ export function Sidebar({ activeId, onNavigate, onOpenPalette, sections }: Sideb
       </nav>
 
       <div className="border-t border-[var(--nx-border)] p-2">
+        {!pluginAdapter.supportsPlugins && (
+          <div className="mb-2 rounded-[var(--nx-radius)] border border-[var(--nx-border-strong)] bg-[var(--nx-surface-2)] p-2.5 text-xs text-[var(--nx-fg)]">
+            <p className="mb-2 font-medium">Want the global hotkey?</p>
+            <p className="mb-3 text-[var(--nx-fg-subtle)]">
+              Get the desktop app to unlock{' '}
+              <kbd className="rounded border border-[var(--nx-border-strong)] bg-[var(--nx-bg)] px-1 font-mono text-[10px]">
+                ⌘⇧Space
+              </kbd>{' '}
+              from anywhere.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.open('https://github.com/nanduajith/nexine/releases', '_blank')}
+              className="w-full rounded-[var(--nx-radius)] border border-[var(--nx-border-strong)] bg-[var(--nx-surface-3)] px-2 py-1 font-medium transition-colors hover:bg-[var(--nx-border)]"
+            >
+              Download App
+            </button>
+          </div>
+        )}
         <button
           type="button"
           onClick={() => onNavigate('settings')}
