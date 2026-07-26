@@ -1,5 +1,7 @@
 # Writing a Nexine plugin
 
+> **Note:** Third-party plugins are a **desktop-only** capability. The web tier runs first-party tools exclusively.
+
 A plugin is a self-contained developer tool that runs inside Nexine's sandbox. It is authored
 in TypeScript, bundled to a single classic-script module, and distributed as a **signed
 `.nexpkg` package**. At runtime it lives in an opaque-origin iframe and can do nothing
@@ -40,8 +42,9 @@ a single JSON document:
 ## 1. The manifest
 
 The manifest is the **security-load-bearing** artifact: the host reads and validates it
-_before any plugin code runs_, and its declared permissions determine the CSP the plugin's
-iframe is created with. Because the declaration precedes and constrains the code, a plugin
+_before any plugin code runs_. On desktop, the Tauri custom protocol (`nexine-sandbox://`)
+serves the plugin iframe with a dynamic `Content-Security-Policy` header explicitly built
+from the granted permissions. Because the declaration precedes and constrains the code, a plugin
 cannot grant itself a capability at runtime.
 
 ```jsonc
@@ -97,8 +100,8 @@ declared destination that has no matching network host.
 ```
 
 Nexine never inspects payloads at runtime (that would defeat the no-egress promise). Data-flows
-are a **transparency contract**, enforced socially by review and technically by the network
-allowlist.
+are a **transparency contract**, enforced socially by review and technically by the per-plugin
+`connect-src` header served by the custom protocol.
 
 ## 2. The entry (guest SDK)
 

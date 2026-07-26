@@ -13,7 +13,7 @@ _Offline-first developer utility platform (standalone tool → plugin platform �
 **Strategic decisions (made with the user, stress-tested against an external exec review):**
 
 - **MVP = standalone-tool-first.** V1 is a genuinely great offline toolbox (15–20 first-party tools, superb UX, global hotkey) — _fully useful with zero third-party plugins_. This solves the plugin cold-start problem (an empty plugin host is a ghost town).
-- **Architecture underneath is plugin-ready, but the platform is sequenced later.** Tools are built against a clean internal `ToolModule` interface that later hardens into the public SDK. The per-plugin **iframe sandbox + permission engine is Phase 2** — you only need it once untrusted third-party plugins exist. V1's no-egress guarantee comes from a blanket **app-level strict CSP**.
+- **Two-tier Architecture.** To completely eliminate plugin attack surface for self-hosters, the web tier is strictly first-party tools only. The desktop tier embeds the sandboxed runtime, permitting third-party plugins via a custom-protocol iframe + permission engine (delivered in Phase 2). V1's no-egress guarantee comes from a blanket **app-level strict CSP**.
 - **Governance is real because the host owns the plugin lifecycle** (the key insight: client-side governance is enforceable only when a host controls what loads, from where, with what permissions).
 - **Open-core = GitLab model.** _Free OSS_ = client + tools + sandbox + permission enforcement + **local/DIY governance** (local policy file, side-load, basic allow/block) — must be free, both for trust/adoption and because client-side enforcement can't be hidden anyway. _Paid Enterprise_ = the **control plane you can't self-build**: central management console, SSO/SAML, fleet policy distribution + drift detection, audit aggregation → SIEM, and a **supported self-hosted enterprise binary** (HashiCorp-style, for air-gap) — plus the hosted marketplace.
 - **Templates:** VS Code (open host + closed marketplace + extension policies), Bruno (MIT offline core, no-telemetry, git-native, bottom-up adoption).
@@ -49,9 +49,9 @@ A complete, lovable product on its own. License **MIT**.
 
 **Secrets at rest:** desktop persists any opt-in sensitive data via **OS keychain** (Tauri keychain/Stronghold); the **web build persists nothing sensitive — ephemeral by default** (no keychain exists in a browser; optional passphrase-derived WebCrypto encryption only if a user insists).
 
-## Phase 2 — Plugin platform (still OSS, DIY governance free)
+## Phase 2 — Plugin platform (still OSS, DIY governance free) ✅ Delivered
 
-Harden the internal interface into a public ecosystem — _now_ the sandbox matters (untrusted code arrives).
+Harden the internal interface into a public ecosystem — third-party plugins run securely in the desktop tier.
 
 - **Public Plugin SDK + open manifest/package format** (VSIX analog); community can build tools.
 - **Sandboxed iframe runtime** — each plugin in a strict-`sandbox` iframe + per-plugin CSP, `postMessage` RPC to host; host mediates all I/O. Plugin cannot touch host DOM/storage/network directly.

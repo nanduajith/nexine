@@ -19,10 +19,10 @@ code path by which a pasted secret, token, or payload can be exfiltrated, becaus
 forbids outbound connections.
 
 **Scope of this guarantee.** The absolute claim above is the _app document's_, and it is permanent.
-Every first-party tool is denied the network too — the builtins request no `network` permission, so
-each runs with `connect-src 'none'`. Plugins run in their own sandboxes and are likewise
+Every first-party tool is denied the network too — they run in-process and request no network permission, so
+each runs under the app's `connect-src 'none'`. On desktop, third-party plugins run in their own sandboxes and are likewise
 denied the network by default; where a plugin _is_ granted egress, it is a **scoped, declared,
-admin-controlled** permission bounded to exact hosts (see [Plugin sandbox](#plugin-sandbox) and
+admin-controlled** permission bounded to exact hosts (see [Desktop plugin sandbox](#desktop-plugin-sandbox) and
 [Governance & audit](#governance--audit)). Granting a plugin scoped egress never loosens the app
 document's own `connect-src 'none'` — the host is never a network proxy.
 
@@ -58,31 +58,19 @@ document's own `connect-src 'none'` — the host is never a network proxy.
 - Local preferences (favorites, recently-used tool ids, theme) are stored in `localStorage` on the
   device only. They contain tool identifiers and UI settings — never tool inputs or outputs.
 
-## Plugin sandbox
+## Desktop plugin sandbox
 
-Nexine runs **every** tool as a sandboxed plugin — there is no privileged in-process path. The
-first-party builtins run in the exact same isolation as an untrusted, side-loaded plugin; the
-only difference is that a builtin's source ships inside the app (see
-[architecture.md](architecture.md)). So the guarantees below apply uniformly. Untrusted code is
-isolated by construction rather than by trust:
+On desktop, third-party plugins run in a sandboxed iframe; first-party tools render in-process on both web and desktop. Untrusted code is isolated by construction rather than by trust:
 
 1. **Opaque-origin iframe over a real sandbox document.** Each plugin runs in a
    `sandbox="allow-scripts"` iframe with **no** `allow-same-origin`, so it executes at an opaque
    origin. It cannot read the host's DOM, cookies, `localStorage`, or preferences — proven by the
-   sandbox self-test (the plugin cannot even read the parent's `location`). The iframe is pointed at
-   a real, same-origin **`sandbox.html`** document — deliberately _not_ a `srcdoc`/`blob:`/`data:`
-   document. That matters: a local-scheme document _inherits_ the embedder's CSP, which would subject
-   the sandbox to the app's strict `script-src 'self'` and silently prevent the guest from running.
-   A real-scheme document is governed **only by its own CSP**
-   ([`buildSandboxDocumentCsp`](../packages/core/src/security/csp.ts)), so the sandbox is both fully
+   sandbox self-test. The iframe is pointed at a real **`nexine-sandbox://`** custom-protocol document — deliberately _not_ a `srcdoc`/`blob:`/`data:`
+   document. A real-scheme document is governed **only by its own CSP**, so the sandbox is both fully
    isolated _and_ actually runnable.
-2. **The sandbox document denies all network egress.** `sandbox.html` ships a fixed
-   `default-src 'none'; script-src 'self' blob:; connect-src 'none'; …` policy. The host-trusted
+2. **The sandbox document enforces per-plugin CSP.** The `nexine-sandbox` protocol serves the sandbox document with a dynamic `Content-Security-Policy` header. By default, it denies all network egress (`connect-src 'none'`). The host-trusted
    guest loads as a same-origin (`'self'`) script; the untrusted plugin source is handed over the
-   private channel and executed as an in-memory `blob:` script. Because the document's own
-   `connect-src` is `'none'`, **the browser physically blocks every request any plugin attempts** —
-   builtin or side-loaded, the network is simply unavailable inside the sandbox. The **host is never
-   a network proxy**, and the app document itself still ships `connect-src 'none'`.
+   private channel and executed as an in-memory `blob:` script.
 3. **Deny-by-default permissions.** A plugin declares permissions in a manifest that is validated
    _before any code runs_ ([`validateManifest`](../packages/sdk/src/validate.ts)). The
    [permission engine](../packages/plugin-runtime/src/permission-engine.ts) resolves declared vs.
@@ -93,17 +81,11 @@ isolated by construction rather than by trust:
    Storage is namespaced per plugin, so one plugin can never read another's data.
 
 The one app-level policy concession this requires is `frame-src 'self'` (down from `'none'`), which
-only lets the host _create_ the sandboxes; each sandbox then enforces its own stricter policy. The
+only lets the desktop host _create_ the sandboxes; each sandbox then enforces its own stricter policy. The
 app's own `connect-src 'none'` and `script-src 'self'` are unchanged.
 
 > **On scoped plugin egress.** The permission vocabulary and governance UI model a _declared,
-> admin-granted_ `network` capability with an exact host allow-list, and the permission engine
-> narrows it against policy ([`buildPluginCsp`](../packages/plugin-runtime/src/plugin-csp.ts)
-> computes the corresponding per-plugin `connect-src`). Enforcing that allow-list requires serving
-> the sandbox document with a **per-plugin** CSP — a Service Worker (web) or the Tauri custom
-> protocol (desktop) — which is the tracked next step. **Until then the shipped build is stricter
-> than the model: every plugin gets `connect-src 'none'`, so no plugin can reach the network at
-> all.** The conservative direction: the no-egress guarantee holds unconditionally.
+> admin-granted_ `network` capability with an exact host allow-list. The permission engine narrows it against policy, and the Tauri custom protocol serves the `nexine-sandbox://` document with a **per-plugin** `connect-src` header enforcing that exact allow-list. By default, every plugin gets `connect-src 'none'`.
 
 ## Signed side-loading
 

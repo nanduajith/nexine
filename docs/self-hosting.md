@@ -1,5 +1,7 @@
 # Self-hosting Nexine
 
+> **Note:** The web build (what you self-host) includes **first-party tools only**. Third-party plugins, and their associated sandboxing and governance controls, are a desktop-only capability.
+
 Nexine is a static, client-side application — there is no backend, database, or app server to
 operate. Hosting it means serving a folder of static files. Two supported paths:
 

@@ -405,10 +405,10 @@
             </ul>
           </div>
 
-          <h3 style="margin-top: 34px">Per-plugin isolation</h3>
+          <h3 style="margin-top: 34px">Desktop per-plugin isolation</h3>
           <p class="sub">
-            Nexine runs every tool the same way — an untrusted plugin and a first-party builtin
-            share one path:
+            The web build supports first-party tools only. The desktop app securely isolates
+            third-party plugins:
           </p>
           <div class="grid cols-2">
             <div class="card">
@@ -422,10 +422,10 @@
             <div class="card">
               <h3>Egress is a scoped, granted permission</h3>
               <p>
-                The host computes a CSP from a plugin's <em>granted</em> permissions. No
-                <code>network</code> grant → <code>connect-src 'none'</code>. A grant is narrowed to
-                the exact hosts you allow — deny-by-default, admin-controlled, and never routed
-                through a host proxy. See <a href="#governance">Governance</a>.
+                The custom protocol serves the iframe with a CSP built from
+                <em>granted</em> permissions. No <code>network</code> grant →
+                <code>connect-src 'none'</code>. A grant is narrowed to the exact hosts you allow —
+                deny-by-default, admin-controlled, and never routed through a host proxy.
               </p>
             </div>
             <div class="card">
@@ -457,10 +457,10 @@
 
         <!-- ================= PLUGINS ================= -->
         <section id="plugins" class="reveal">
-          <h2>The plugin platform</h2>
+          <h2>The plugin platform (Desktop)</h2>
           <p class="sub">
-            One execution path for everything. Build a tool against the public SDK, sign it, and
-            side-load it — no account, no network.
+            Third-party plugins are a desktop-only capability. Build a tool against the public SDK,
+            sign it, and side-load it — no account, no network.
           </p>
 
           <div class="grid cols-2" style="margin-bottom: 22px">
@@ -507,10 +507,10 @@ pnpm nexine verify dev.nexine.cron-explainer-1.0.0.nexpkg <span class="k">--trus
 
         <!-- ================= GOVERNANCE ================= -->
         <section id="governance" class="reveal">
-          <h2>Governance, on device</h2>
+          <h2>Governance, on device (Desktop)</h2>
           <p class="sub">
-            The free DIY tier is enforceable precisely because the host owns the plugin lifecycle —
-            what loads, from where, with what permissions.
+            The free DIY tier is enforceable precisely because the desktop host owns the plugin
+            lifecycle — what loads, from where, with what permissions.
           </p>
           <div class="grid cols-2">
             <div class="card">
@@ -704,9 +704,7 @@ pnpm desktop:build    <span class="cm"># produce a native installer</span></pre>
               target="_blank"
               rel="noopener"
               ><b>Architecture</b
-              ><span
-                >Monorepo layout, package graph, the sandboxed-plugin model, persistence.</span
-              ></a
+              ><span>Monorepo layout, package graph, the two-tier model, persistence.</span></a
             >
             <a
               class="doclink"

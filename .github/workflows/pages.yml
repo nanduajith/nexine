@@ -55,6 +55,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build the app for the Pages subpath
+        env:
+          NEXINE_TARGET: web
         run: pnpm build # NEXINE_BASE (env, above) prefixes assets with /nexine/app/
 
       - name: Verify the no-egress CSP is present in the demo build

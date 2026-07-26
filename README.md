@@ -17,9 +17,7 @@ Nothing leaves your machine unless you explicitly allow it.
 
 Nexine is a cross-platform (desktop + self-hostable web) collection of everyday developer
 utilities — JWT, Base64, URL, hashing, JSON, and more — built so a security-conscious enterprise
-can offer a sanctioned alternative to pasting production secrets into random online tools. Under
-the hood, **every tool is a sandboxed plugin**, and third parties can build, sign, and side-load
-their own — all without ever giving the app the ability to phone home.
+can offer a sanctioned alternative to pasting production secrets into random online tools. Nexine uses a **two-tier architecture**: on the web, first-party tools run securely in-process; on the desktop app, an embedded runtime allows third parties to build, sign, and side-load their own sandboxed plugins — all without ever giving the app the ability to phone home.
 
 > _Nexine_ — after the **nexine**, the inner protective layer of a pollen-grain wall: a hardened
 > shell that keeps what's inside safe.
@@ -94,10 +92,7 @@ global summon hotkey.
 
 ## The plugin platform
 
-Nexine has **one execution path** for tools: an opaque-origin, CSP-locked iframe with
-host-brokered RPC. There is no privileged in-process path — the builtins above run in the exact
-same sandbox as an untrusted, side-loaded plugin. The only difference is where the source comes
-from (bundled in the app vs. a signed package on disk).
+Nexine's plugin platform is a **desktop-only capability**. First-party tools run in-process on both the web and desktop. Third-party plugins, side-loaded via signed `.nexpkg` packages, run in an opaque-origin, custom-protocol iframe with host-brokered RPC and a dynamic per-plugin Content-Security-Policy.
 
 - **Public SDK** ([`@nexine/sdk`](packages/sdk)) — a stable, serializable manifest; a small,
   audited permission vocabulary (`network` with a host allowlist, `clipboard`, `storage`);
@@ -147,7 +142,7 @@ toward the framework-free `core`; ESLint forbids React in `core`).
 | [`tools/*`](tools)                                   | One package per tool — a pure, unit-tested `transform`, reused by the builtins.                     |
 | [`examples/*`](examples)                             | Sample plugins you can pack, sign, and side-load.                                                   |
 
-Full detail — the dependency graph, the "everything is a sandboxed plugin" model, and where
+Full detail — the dependency graph, the two-tier adapter seam, and where
 state is persisted — is in [`docs/architecture.md`](docs/architecture.md).
 
 ---
@@ -180,8 +175,7 @@ pnpm desktop:dev      # run the desktop app in development
 pnpm desktop:build    # produce a native installer
 ```
 
-> The desktop packaging follows the standard Tauri v2 layout but is not compiled in CI (no Rust
-> toolchain there yet); build it on a machine with Rust installed.
+> The desktop packaging follows the standard Tauri v2 layout and is compiled and integration-tested in CI across all platforms.
 
 ---
 
@@ -203,13 +197,13 @@ restrictive `Permissions-Policy`.
 
 ## Documentation
 
-| Doc                                              | Covers                                                                      |
-| ------------------------------------------------ | --------------------------------------------------------------------------- |
-| [docs/architecture.md](docs/architecture.md)     | Monorepo layout, package graph, the sandboxed-plugin model, persistence.    |
-| [docs/security-model.md](docs/security-model.md) | The no-egress guarantee, the sandbox, signed side-loading, non-goals.       |
-| [docs/plugins.md](docs/plugins.md)               | Authoring, packaging, signing, and side-loading a plugin.                   |
-| [docs/governance.md](docs/governance.md)         | Consent, publisher trust, policy modes, the policy file, and the audit log. |
-| [docs/self-hosting.md](docs/self-hosting.md)     | Docker and static-host deployment, including air-gapped.                    |
+| Doc                                              | Covers                                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------------------- |
+| [docs/architecture.md](docs/architecture.md)     | Monorepo layout, package graph, the two-tier model, persistence.                  |
+| [docs/security-model.md](docs/security-model.md) | The no-egress guarantee, the custom-protocol CSP, signed side-loading, non-goals. |
+| [docs/plugins.md](docs/plugins.md)               | Authoring, packaging, signing, and side-loading a plugin.                         |
+| [docs/governance.md](docs/governance.md)         | Consent, publisher trust, policy modes, the policy file, and the audit log.       |
+| [docs/self-hosting.md](docs/self-hosting.md)     | Docker and static-host deployment, including air-gapped.                          |
 
 ---
 

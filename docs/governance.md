@@ -1,5 +1,7 @@
 # Governance (DIY tier)
 
+> **Note:** Third-party plugins, and the governance controls described here, are a **desktop-only** capability. The web tier runs first-party tools exclusively and has no third-party plugin attack surface to govern.
+
 Governance is what makes Nexine safe to open up to third-party plugins. The **free, DIY tier**
 is entirely on-device — no account, no egress — and is enforceable precisely because the host
 owns the plugin lifecycle: it decides what loads, from where, and with what permissions.
@@ -65,7 +67,7 @@ Nexine does not have to _cripple_ a plugin to keep egress under control — netw
   specific plugin — e.g. letting a single tool reach an internal JWKS endpoint that no other plugin
   may touch.
 
-A plugin's granted hosts become its iframe's `connect-src`; a plugin with no granted host gets
+A plugin's granted hosts become its iframe's `connect-src` (served dynamically via the Tauri custom protocol's `Content-Security-Policy` header); a plugin with no granted host gets
 `connect-src 'none'`. Crucially, **the host is never a proxy** and the app document itself always
 ships `connect-src 'none'`, so granting a plugin scoped egress never weakens the app-wide no-egress
 guarantee. This bounds _where_ a plugin can connect (exact origins), not _what_ it sends — payload

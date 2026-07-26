@@ -6,14 +6,14 @@ how to extend it.
 
 ## Contents
 
-| Doc                                    | What it covers                                                                                                    |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| [architecture.md](architecture.md)     | The monorepo layout, the package dependency graph, and the "everything is a sandboxed plugin" execution model.    |
-| [security-model.md](security-model.md) | The no-egress guarantee, how the CSP enforces it, the plugin sandbox, and honest non-goals.                       |
-| [plugins.md](plugins.md)               | Authoring a plugin: the manifest, permissions, the guest SDK, packaging + signing with the CLI, and side-loading. |
-| [governance.md](governance.md)         | The DIY governance tier: install-time consent, publisher trust, policy modes, the policy file, and the audit log. |
-| [self-hosting.md](self-hosting.md)     | Serving Nexine from Docker or any static host, including air-gapped deployments.                                  |
-| [releasing.md](releasing.md)           | Cutting a release: `pnpm bump`, the tag-triggered pipeline, and every artifact it produces.                       |
+| Doc                                    | What it covers                                                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [architecture.md](architecture.md)     | The monorepo layout, the package dependency graph, and the two-tier execution model (in-process web, sandboxed desktop). |
+| [security-model.md](security-model.md) | The no-egress guarantee, the per-plugin custom-protocol CSP, the plugin sandbox, and honest non-goals.                   |
+| [plugins.md](plugins.md)               | Authoring a plugin: the manifest, permissions, the guest SDK, packaging + signing with the CLI, and side-loading.        |
+| [governance.md](governance.md)         | The DIY governance tier: install-time consent, publisher trust, policy modes, the policy file, and the audit log.        |
+| [self-hosting.md](self-hosting.md)     | Serving Nexine from Docker or any static host, including air-gapped deployments.                                         |
+| [releasing.md](releasing.md)           | Cutting a release: `pnpm bump`, the tag-triggered pipeline, and every artifact it produces.                              |
 
 ## Start here
 
