@@ -6,12 +6,12 @@
     <title>Nexine — the offline-first, no-egress developer toolbox</title>
     <meta
       name="description"
-      content="Nexine is a 100% client-side developer toolbox with a hard no-egress guarantee, built on a governed, sandboxed plugin platform. Your data never leaves your machine."
+      content="Nexine is a 100% client-side developer toolbox: the app ships connect-src 'none' and can't phone home, on a governed, sandboxed plugin platform where plugin network access is deny-by-default and granted only per policy."
     />
     <meta property="og:title" content="Nexine — no-egress developer toolbox & plugin platform" />
     <meta
       property="og:description"
-      content="Every tool runs in an opaque-origin sandbox that physically cannot open a network connection. Cross-platform, MIT, self-hostable."
+      content="The app can't open a network connection; every tool runs in an opaque-origin sandbox with no network by default — egress is a scoped, admin-granted permission. Cross-platform, MIT, self-hostable."
     />
     <meta property="og:type" content="website" />
     <link rel="icon" href="assets/logo.svg" />
@@ -110,13 +110,13 @@
             </svg>
             100% client-side · no account · no telemetry
           </span>
-          <h1>Developer tools that physically can't phone home.</h1>
+          <h1>Developer tools that can't phone home.</h1>
           <p class="lede">
             Nexine is an offline-first, <b>no-egress</b> developer toolbox — JWT, Base64, JSON,
-            hashing and more — that grows into a governed, sandboxed plugin platform. Every tool
-            runs in an opaque-origin iframe whose Content-Security-Policy ships
-            <code>connect-src 'none'</code>, so a pasted secret has <em>no code path</em> off your
-            machine.
+            hashing and more — on a governed, sandboxed plugin platform. The app document itself
+            ships <code>connect-src 'none'</code> and can't open a network connection, and every
+            tool is denied the network by default — a plugin reaches a host only when you
+            <em>explicitly, and specifically,</em> allow it.
           </p>
           <div class="hero-cta">
             <a class="btn btn-primary" href="#start"
@@ -144,7 +144,7 @@
           </div>
           <div class="hero-badges">
             <span class="chip"><b>12</b> built-in tools</span>
-            <span class="chip"><b>115</b> tests passing</span>
+            <span class="chip"><b>119</b> tests passing</span>
             <span class="chip"><b>Ed25519</b> signed plugins</span>
             <span class="chip"><b>Tauri</b> desktop + web</span>
             <span class="chip"><b>MIT</b> open core</span>
@@ -173,10 +173,11 @@
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
               </div>
-              <h3>Hard no-egress</h3>
+              <h3>No-egress by default</h3>
               <p>
-                The production CSP is <code>connect-src 'none'</code>. fetch, XHR, WebSocket, and
-                beacons are blocked by the browser itself — verified by a CI test.
+                The app document ships <code>connect-src 'none'</code> — fetch, XHR, WebSocket and
+                beacons are blocked by the browser, verified in CI. Plugins get no network either,
+                until you grant scoped access.
               </p>
             </div>
             <div class="card">
@@ -356,8 +357,9 @@
         <section id="security" class="reveal">
           <h2>The security model</h2>
           <p class="sub">
-            The core promise is simple: your data never leaves your machine. Here is exactly how
-            that is enforced.
+            The core promise: the app never phones home, and your data stays local unless you
+            deliberately grant a plugin scoped access to a specific host. Here is exactly how that
+            is enforced.
           </p>
           <div class="egress">
             <div class="shield">
@@ -372,8 +374,9 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 6L9 17l-5-5"></path></svg
                 ><span
-                  ><b>No network connection is possible.</b> The browser blocks fetch, XHR,
-                  WebSocket, EventSource and sendBeacon at the platform level.</span
+                  ><b>The app can't open a connection.</b> Its document ships
+                  <code>connect-src 'none'</code>, so fetch, XHR, WebSocket, EventSource and
+                  sendBeacon are blocked at the platform level.</span
                 >
               </li>
               <li>
@@ -418,11 +421,12 @@
               </p>
             </div>
             <div class="card">
-              <h3>Per-plugin CSP is the network control</h3>
+              <h3>Egress is a scoped, granted permission</h3>
               <p>
                 The host computes a CSP from a plugin's <em>granted</em> permissions. No
                 <code>network</code> grant → <code>connect-src 'none'</code>. A grant is narrowed to
-                exact declared hosts. The host never proxies.
+                the exact hosts you allow — deny-by-default, admin-controlled, and never routed
+                through a host proxy. See <a href="#governance">Governance</a>.
               </p>
             </div>
             <div class="card">
@@ -529,16 +533,25 @@ pnpm nexine verify dev.nexine.cron-explainer-1.0.0.nexpkg <span class="k">--trus
               <h3>Policy modes</h3>
               <p>
                 A graduated posture: <code>allow</code> → <code>blocklist</code> →
-                <code>lockdown</code>, plus permission ceilings and a network-host ceiling. Export a
-                shareable policy file across devices.
+                <code>lockdown</code>, plus permission ceilings. Export a shareable policy file
+                across devices.
+              </p>
+            </div>
+            <div class="card">
+              <h3>Egress control</h3>
+              <p>
+                Flip network to <b>deny-by-default</b>, then allow exact <code>https</code> origins
+                globally or grant one host to a single plugin — from Settings or a distributed
+                policy file. A plugin keeps every other capability; it just can't reach a host you
+                didn't name.
               </p>
             </div>
             <div class="card">
               <h3>Audit log</h3>
               <p>
                 An on-device, capped ring buffer of governance <em>decisions</em> — installs,
-                consents, blocks, pins, policy imports. Metadata only: never a plugin input, output,
-                or payload.
+                consents, blocks, pins, policy updates, and each granted egress host. Metadata only:
+                never a plugin input, output, or payload.
               </p>
             </div>
           </div>

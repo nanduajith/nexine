@@ -18,6 +18,14 @@ This means the application **cannot open a network connection of any kind** — 
 code path by which a pasted secret, token, or payload can be exfiltrated, because the runtime itself
 forbids outbound connections.
 
+**Scope of this guarantee.** The absolute claim above is the _app document's_, and it is permanent.
+Every first-party tool is denied the network too — the builtins request no `network` permission, so
+each runs with `connect-src 'none'`. Plugins run in their own sandboxes and are likewise
+denied the network by default; where a plugin _is_ granted egress, it is a **scoped, declared,
+admin-controlled** permission bounded to exact hosts (see [Plugin sandbox](#plugin-sandbox) and
+[Governance & audit](#governance--audit)). Granting a plugin scoped egress never loosens the app
+document's own `connect-src 'none'` — the host is never a network proxy.
+
 ## How it is enforced
 
 1. **Single source of truth.** The policy is produced by
@@ -66,9 +74,11 @@ isolated by construction rather than by trust:
    plugin's iframe from its _granted_ permissions
    ([`buildPluginCsp`](../packages/plugin-runtime/src/plugin-csp.ts)). A plugin with no `network`
    grant gets `connect-src 'none'` — the browser physically blocks every request it attempts. A
-   granted plugin gets `connect-src` limited to the exact declared hosts. Crucially, the **host is
-   never a network proxy**: it cannot leak the app-wide no-egress guarantee, because the app document
-   itself still ships `connect-src 'none'`.
+   granted plugin gets `connect-src` limited to the exact declared hosts. Policy narrows this
+   further: an org can require an explicit allow-list (network is denied unless a host is named) and
+   grant hosts globally or to a single plugin — see [governance.md](governance.md#controlling-egress).
+   Crucially, the **host is never a network proxy**: it cannot leak the app-wide no-egress guarantee,
+   because the app document itself still ships `connect-src 'none'`.
 3. **Deny-by-default permissions.** A plugin declares permissions in a manifest that is validated
    _before any code runs_ ([`validateManifest`](../packages/sdk/src/validate.ts)). The
    [permission engine](../packages/plugin-runtime/src/permission-engine.ts) resolves declared vs.
@@ -96,9 +106,10 @@ always the host's decision. Packages are built and signed locally with the
 ## Governance & audit
 
 The free, on-device governance tier — install-time consent, publisher trust, graduated policy
-modes (`allow → blocklist → lockdown`), a shareable policy file, and a metadata-only audit log —
-is described in [governance.md](governance.md). The audit log records governance _decisions_
-only; it never records plugin inputs, outputs, or payloads.
+modes (`allow → blocklist → lockdown`), **egress control** (deny-by-default network with global and
+per-plugin host allow-lists), a shareable policy file, and a metadata-only audit log — is described
+in [governance.md](governance.md). The audit log records governance _decisions_ only (including each
+granted egress host); it never records plugin inputs, outputs, or payloads.
 
 ## Honest scope / non-goals
 
