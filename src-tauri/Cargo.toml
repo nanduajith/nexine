@@ -20,3 +20,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # OS keychain (Keychain / Credential Manager / Secret Service).
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+# URL parsing for the custom protocol handler.
+url = "2"
+percent-encoding = "2"

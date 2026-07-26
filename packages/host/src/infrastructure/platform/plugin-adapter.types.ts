@@ -33,4 +33,11 @@ export interface PluginAdapter {
   installedToolModules(governance: GovernanceState): ToolModule[];
   /** Extra Settings surfaces (side-load, publisher trust, egress). Web: `[]`. */
   readonly settingsSections: readonly PluginSettingsSection[];
+  /**
+   * Build the sandbox document URL for a specific plugin, carrying per-plugin CSP
+   * parameters. Desktop returns a `nexine-sandbox://` custom-protocol URL; web
+   * does not implement this (web has no plugins). Falls back to the static
+   * `sandbox.html` when not provided.
+   */
+  sandboxDocUrlFor?(pluginId: string, grantedHosts: readonly string[]): string;
 }

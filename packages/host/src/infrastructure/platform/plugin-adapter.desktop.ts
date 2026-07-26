@@ -52,4 +52,12 @@ export const pluginAdapter: PluginAdapter = {
       component: EgressPanel,
     },
   ],
+  sandboxDocUrlFor(pluginId: string, grantedHosts: readonly string[]): string {
+    // Generate a fresh nonce per load — unguessable, single-use.
+    const nonce = crypto.randomUUID().replace(/-/g, '');
+    const hosts = grantedHosts.length > 0 ? encodeURIComponent(grantedHosts.join(',')) : '';
+    return `nexine-sandbox://plugin/${encodeURIComponent(
+      pluginId,
+    )}?nonce=${nonce}${hosts ? `&hosts=${hosts}` : ''}`;
+  },
 };

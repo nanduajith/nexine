@@ -1,11 +1,13 @@
 import { createTrustStore } from '@nexine/packaging';
-import type { PackageSigner, PermissionResolution } from '@nexine/plugin-runtime';
-import { inspectPackage, loadPackage } from '@nexine/plugin-runtime';
+import type { PackageSigner, PermissionResolution, PluginPolicy } from '@nexine/plugin-runtime';
+import { inspectPackage, loadPackage, resolvePermissions } from '@nexine/plugin-runtime';
+import { isNetworkPermission, type PluginManifest } from '@nexine/sdk';
 import { Badge, Button, Panel } from '@nexine/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useGovernance } from '../../app/hooks/useGovernance';
 import { usePreferences } from '../../app/hooks/usePreferences';
+import { pluginAdapter } from '../../infrastructure/platform/plugin-adapter';
 import {
   governanceStore,
   type GovernanceState,
@@ -14,13 +16,15 @@ import {
 import type { PluginToolSource } from './plugin-source';
 import { Notice, PermissionList, shortKey, SignerBadge } from './ui';
 
-/**
- * URL of the static plugin sandbox document. Every plugin iframe points here (a
- * real same-origin document, not srcdoc/blob) so it is governed by its own CSP and
- * does not inherit the app's strict `script-src 'self'`. Resolving against
- * `document.baseURI` keeps it correct under any deploy base (root, `/nexine/app/`, …).
- */
-const SANDBOX_DOC_URL = new URL('sandbox.html', document.baseURI).href;
+/** Build the sandbox document URL, using the custom protocol on desktop. */
+function sandboxUrlFor(manifest: PluginManifest, policy: PluginPolicy): string {
+  if (!pluginAdapter.sandboxDocUrlFor) {
+    return new URL('sandbox.html', document.baseURI).href;
+  }
+  const resolution = resolvePermissions(manifest, policy);
+  const grantedHosts = resolution.granted.filter(isNetworkPermission).flatMap((p) => p.hosts);
+  return pluginAdapter.sandboxDocUrlFor(manifest.id, grantedHosts);
+}
 
 /** Normalised inspection outcome for a signed package. */
 type Inspection =
@@ -88,7 +92,7 @@ function SandboxMount({
     void loadPackage({
       package: source.record.package,
       trustStore,
-      sandboxDocUrl: SANDBOX_DOC_URL,
+      sandboxDocUrl: sandboxUrlFor(source.manifest, governance.policy),
       policy: governance.policy,
       onFatal: setFatal,
     }).then((result) => {
