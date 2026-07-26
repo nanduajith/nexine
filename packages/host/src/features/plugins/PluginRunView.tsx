@@ -66,11 +66,14 @@ function SandboxMount({
       const iframe = iframeRef.current;
       if (!iframe || event.source !== iframe.contentWindow) return;
       const data = event.data as { type?: string; height?: number } | null;
-      if (data?.type === 'nx:theme-request') {
+      if (!data?.type) return;
+      if (data.type === 'nx:theme-request') {
         iframe.contentWindow?.postMessage({ type: 'nx:theme', theme: themeRef.current }, '*');
-      } else if (data?.type === 'nx:height' && typeof data.height === 'number') {
+      } else if (data.type === 'nx:height' && typeof data.height === 'number') {
         iframe.style.height = `${Math.max(data.height, 120)}px`;
       }
+      // Any other message type from the iframe is silently ignored — the RPC
+      // channel is the only other communication path (over the MessageChannel port).
     };
     window.addEventListener('message', onMessage);
 

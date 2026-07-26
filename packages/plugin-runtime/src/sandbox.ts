@@ -58,6 +58,10 @@ export function createPluginSandbox(options: SandboxOptions): PluginSandbox {
       ...(onFatal ? { onFatal } : {}),
     });
     // Opaque origin ⇒ we must target '*'; the channel itself is the private link.
+    // The guest accepts this port exactly once, from window.parent only, and all
+    // subsequent communication happens over the transferred MessageChannel
+    // (structured-clone payloads only — no functions or DOM nodes cross the
+    // boundary; the browser throws DataCloneError on non-cloneable values).
     iframe.contentWindow.postMessage({ type: 'nx:port' }, '*', [channel.port2]);
   });
 

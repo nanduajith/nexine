@@ -42,4 +42,16 @@ describe('buildPluginCsp', () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("base-uri 'none'");
   });
+
+  it('never includes unsafe-eval regardless of granted permissions', () => {
+    const granted: Permission[] = [
+      { id: 'network', hosts: ['https://api.example.com'] },
+      { id: 'storage' },
+      { id: 'clipboard', access: 'readwrite' },
+    ];
+    const csp = buildPluginCsp({ granted, nonce: NONCE });
+    expect(csp).not.toContain('unsafe-eval');
+    // Also verify with no grants.
+    expect(buildPluginCsp({ granted: [], nonce: NONCE })).not.toContain('unsafe-eval');
+  });
 });
