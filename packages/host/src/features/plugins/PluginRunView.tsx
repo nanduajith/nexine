@@ -15,6 +15,14 @@ import type { BuiltinPlugin } from './builtin-plugins';
 import type { PluginToolSource } from './plugin-source';
 import { Notice, PermissionList, shortKey, SignerBadge } from './ui';
 
+/**
+ * URL of the static plugin sandbox document. Every plugin iframe points here (a
+ * real same-origin document, not srcdoc/blob) so it is governed by its own CSP and
+ * does not inherit the app's strict `script-src 'self'`. Resolving against
+ * `document.baseURI` keeps it correct under any deploy base (root, `/nexine/app/`, …).
+ */
+const SANDBOX_DOC_URL = new URL('sandbox.html', document.baseURI).href;
+
 /** Normalised inspection outcome, unified across signed packages and examples. */
 type Inspection =
   | { readonly status: 'loading' }
@@ -91,6 +99,7 @@ function SandboxMount({
       const result = loadPlugin({
         manifest: source.plugin.manifest,
         pluginSource: source.plugin.source,
+        sandboxDocUrl: SANDBOX_DOC_URL,
         policy: governance.policy,
         onFatal: setFatal,
       });
@@ -112,6 +121,7 @@ function SandboxMount({
     void loadPackage({
       package: source.record.package,
       trustStore,
+      sandboxDocUrl: SANDBOX_DOC_URL,
       policy: governance.policy,
       onFatal: setFatal,
     }).then((result) => {

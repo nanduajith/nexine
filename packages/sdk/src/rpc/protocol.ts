@@ -53,15 +53,19 @@ export interface ResponseMessage {
 }
 
 /**
- * Host → guest: the first message on the channel. Carries the manifest and the
- * *granted* permissions (already narrowed by policy), so the guest SDK can shape
- * its host bridge to exactly what was allowed.
+ * Host → guest: the first message on the channel. Carries the manifest, the
+ * *granted* permissions (already narrowed by policy), and the plugin's own
+ * source. The guest runs at an opaque origin inside a static sandbox document, so
+ * it cannot import the source — the host hands it over here and the guest executes
+ * it as a `blob:` script under the sandbox's own CSP.
  */
 export interface InitMessage {
   readonly type: 'nx:init';
   readonly protocol: number;
   readonly manifest: PluginManifest;
   readonly grantedPermissions: readonly Permission[];
+  /** The plugin's self-contained classic-script source. */
+  readonly pluginSource: string;
 }
 
 /** Guest → host: sent once the guest runtime is wired up and ready for `init`. */
