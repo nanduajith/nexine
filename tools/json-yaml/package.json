@@ -1,0 +1,19 @@
+{
+  "name": "@nexine/tool-json-yaml",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "main": "./src/transform.ts",
+  "types": "./src/transform.ts",
+  "exports": {
+    ".": "./src/transform.ts"
+  },
+  "dependencies": {
+    "@nexine/core": "workspace:*",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9"
+  }
+}

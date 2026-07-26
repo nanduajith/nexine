@@ -28,18 +28,20 @@ utilities — JWT, Base64, URL, hashing, JSON, and more. Nexine uses a **two-tie
 
 Nexine ships in two forms. The **web version** is a lightweight, instant-access toolbox. The **desktop app** is the full plugin platform.
 
-| Capability                                            | Web (Lightweight) | Desktop App |
-| :---------------------------------------------------- | :---------------: | :---------: |
-| **First-party tools** (JWT, Base64, JSON, Hash, etc.) |      ✅ Yes       |   ✅ Yes    |
-| **100% Client-side processing** (No egress)           |      ✅ Yes       |   ✅ Yes    |
-| **Global summon hotkey** (⌘⇧Space)                    |       ❌ No       |   ✅ Yes    |
-| **Third-party Plugins**                               |       ❌ No       |   ✅ Yes    |
-| **Plugin isolation** (Opaque-origin iframe)           |        N/A        |   ✅ Yes    |
-| **Governance & Egress control**                       |        N/A        |   ✅ Yes    |
-| **OS Keychain-backed secret storage**                 |       ❌ No       |   ✅ Yes    |
+| Capability                                        | Web (Lightweight) | Desktop App |
+| :------------------------------------------------ | :---------------: | :---------: |
+| **First-party tools** (JWT, JSON, Hash, +50 more) |      ✅ Yes       |   ✅ Yes    |
+| **100% Client-side processing** (No egress)       |      ✅ Yes       |   ✅ Yes    |
+| **Global summon hotkey** (⌘⇧Space)                |       ❌ No       |   ✅ Yes    |
+| **Third-party Plugins** (.nexpkg side-loading)    |       ❌ No       |   ✅ Yes    |
+| **Plugin isolation** (Opaque-origin iframe)       |        N/A        |   ✅ Yes    |
+| **Governance & Egress control** (Policy rules)    |        N/A        |   ✅ Yes    |
+| **OS Keychain-backed secret storage**             |       ❌ No       |   ✅ Yes    |
+| **Local Filesystem Access** (via plugins)         |       ❌ No       |   ✅ Yes    |
 
-**Use the Web App if** you just need to quickly decode a JWT or format some JSON without installing anything.
-**Download the Desktop App if** you want to install third-party plugins, write your own tools, or use the global hotkey to summon Nexine over any window.
+**Use the Web App if** you just need to quickly decode a JWT, format JSON, or use one of the 50+ built-in utilities without installing anything. It is instantaneous and works on any device.
+
+**Download the Desktop App if** you want to install third-party plugins, write your own extensions that access your local filesystem, govern team plugin usage, or use the global hotkey to summon Nexine instantly over any window.
 
 ---
 
@@ -83,26 +85,19 @@ honest non-goals.
 
 ## Tools
 
-Sixteen tools ship built-in — each a sandboxed plugin, enabled by default and removable:
+Over **50 tools** ship built-in — each a sandboxed plugin, enabled by default and removable.
+Highlights include:
 
-| Tool            | What it does                                           |
-| --------------- | ------------------------------------------------------ |
-| JWT Decoder     | Decode & inspect JWTs locally (sensitive — no history) |
-| Base64          | Encode/decode, Unicode-safe, URL-safe variant          |
-| Hex Converter   | Text ↔ hexadecimal bytes                               |
-| URL Encode      | Percent-encode/decode + query-string inspection        |
-| HTML Entities   | Escape/unescape named, decimal, and hex entities       |
-| Hash            | SHA-1/256/384/512 via WebCrypto                        |
-| JSON Formatter  | Beautify, minify, validate                             |
-| RegEx Tester    | Test patterns with live match highlighting             |
-| UUID Generator  | RFC 4122 v4 UUIDs via a secure CSPRNG                  |
-| Timestamp       | Unix ↔ ISO/UTC/local date conversion                   |
-| Case Converter  | camelCase / snake_case / kebab-case and more           |
-| Cron Explainer  | Explain a cron expression + preview upcoming runs      |
-| Color Converter | HEX ↔ RGB ↔ HSL with a live preview                    |
-| Text Diff       | Line-by-line comparison of two text blocks             |
-| .env ↔ JSON     | Convert between `.env` files and JSON, either way      |
-| Sandbox Demo    | A self-test that proves the sandbox isolation          |
+| Category        | Highlights                                                                              |
+| --------------- | --------------------------------------------------------------------------------------- |
+| **Crypto**      | JWT Decoder, Bcrypt Hash, AES Encrypt/Decrypt, RSA Key Gen, Certificate Decoder         |
+| **Encoding**    | Base64, Hex Converter, URL Encode, HTML Entities, URL Parser                            |
+| **Data & Text** | JSON Formatter, JSONPath, XML Formatter, CSV↔JSON, SQL Formatter, Text Diff, Markdown   |
+| **Generators**  | UUID/ULID/NanoID, Password Gen, Fake Data, Lorem Ipsum, Placeholder Image, Random Bytes |
+| **Time/Math**   | Timestamp, Cron Explainer, Date Math, Timezone, ISO8601 Parser                          |
+| **Web/CSS**     | Color Converter, CSS Unit Converter, CSS Minifier, SVG to CSS, MIME Lookup, IPv4 CIDR   |
+
+_See the application for the full catalog of 52 utilities._
 
 Plus a **⌘K command palette**, starrable favorites, dark/light themes, and — on desktop — a
 global summon hotkey.

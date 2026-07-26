@@ -1,0 +1,12 @@
+{
+  "id": "markdown",
+  "name": "Markdown Preview",
+  "description": "Preview markdown.",
+  "version": "1.0.0",
+  "category": "text",
+  "keywords": [],
+  "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg>",
+  "publisher": "nexine",
+  "homepage": "https://github.com/nanduajith/nexine",
+  "license": "MIT"
+}

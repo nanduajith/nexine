@@ -1,0 +1,17 @@
+{
+  "name": "@nexine/tool-bcrypt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/transform.ts",
+  "types": "./src/transform.ts",
+  "exports": {
+    ".": "./src/transform.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0"
+  }
+}

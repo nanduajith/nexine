@@ -1,0 +1,23 @@
+{
+  "id": "number-base",
+  "name": "Number Base Converter",
+  "description": "Convert numbers between Binary, Octal, Decimal, and Hexadecimal.",
+  "version": "1.0.0",
+  "category": "data",
+  "keywords": [
+    "number",
+    "base",
+    "binary",
+    "octal",
+    "decimal",
+    "hexadecimal",
+    "radix",
+    "hex",
+    "bin",
+    "dec"
+  ],
+  "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10h12\"/><path d=\"M4 14h9\"/><path d=\"M19 6v12\"/></svg>",
+  "publisher": "nexine",
+  "permissions": {},
+  "dataFlows": []
+}

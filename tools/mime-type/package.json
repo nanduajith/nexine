@@ -1,0 +1,18 @@
+{
+  "name": "@nexine/tool-mime-type",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/transform.ts",
+  "types": "./src/transform.ts",
+  "exports": {
+    ".": "./src/transform.ts"
+  },
+  "dependencies": {
+    "@nexine/core": "workspace:*",
+    "mime-types": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^3.0.1"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@nexine/tool-graphql",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/transform.ts",
+  "types": "./src/transform.ts",
+  "exports": {
+    ".": "./src/transform.ts"
+  },
+  "dependencies": {
+    "@nexine/core": "workspace:*",
+    "graphql": "^17.0.2"
+  }
+}
