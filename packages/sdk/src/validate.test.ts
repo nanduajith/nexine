@@ -94,4 +94,73 @@ describe('validateManifest', () => {
       expect('evil' in result.value).toBe(false);
     }
   });
+
+  it('rejects invalid author, icon, sensitive, keywords', () => {
+    expect(issues({ ...base, author: 123 })).toContain('author');
+    expect(issues({ ...base, icon: 123 })).toContain('icon');
+    expect(issues({ ...base, sensitive: 'yes' })).toContain('sensitive');
+    expect(issues({ ...base, keywords: 'keyword' })).toContain('keywords');
+    expect(issues({ ...base, keywords: [123] })).toContain('keywords');
+  });
+
+  it('rejects invalid permissions and dataFlows arrays', () => {
+    expect(issues({ ...base, permissions: 'network' })).toContain('permissions');
+    expect(issues({ ...base, dataFlows: 'api' })).toContain('dataFlows');
+  });
+
+  it('validates storage permission maxBytes', () => {
+    const withStorage = (maxBytes?: unknown) => ({
+      ...base,
+      permissions: maxBytes === undefined ? [{ id: 'storage' }] : [{ id: 'storage', maxBytes }],
+    });
+    expect(issues(withStorage('100'))).toContain('permissions[0].maxBytes');
+    expect(issues(withStorage(-100))).toContain('permissions[0].maxBytes');
+    expect(issues(withStorage(0))).toContain('permissions[0].maxBytes');
+    expect(issues(withStorage(100))).toEqual([]);
+    expect(issues(withStorage())).toEqual([]);
+  });
+
+  it('validates clipboard permission access', () => {
+    const withClipboard = (access: unknown) => ({
+      ...base,
+      permissions: [{ id: 'clipboard', access }],
+    });
+    expect(issues(withClipboard('write'))).toEqual([]);
+    expect(issues(withClipboard('readwrite'))).toEqual([]);
+    expect(issues(withClipboard('invalid'))).toContain('permissions[0].access');
+  });
+
+  it('validates dataFlows properly', () => {
+    expect(issues({
+      ...base,
+      dataFlows: [{ destination: 'api' }]
+    })).toContain('dataFlows[0].description');
+
+    expect(issues({
+      ...base,
+      dataFlows: [{ description: 'sends x' }]
+    })).toContain('dataFlows[0].destination');
+
+    expect(issues({
+      ...base,
+      dataFlows: [{ destination: 'api', description: 'sends x', optional: 'yes' }]
+    })).toContain('dataFlows[0].optional');
+
+    expect(issues({
+      ...base,
+      dataFlows: [{ destination: 'api', description: 'sends x', optional: true }]
+    })).toEqual([]);
+
+    expect(issues({
+      ...base,
+      dataFlows: [null]
+    })).toContain('dataFlows[0]');
+  });
+
+  it('validates permission must be an object', () => {
+    expect(issues({
+      ...base,
+      permissions: ['network']
+    })).toContain('permissions[0]');
+  });
 });

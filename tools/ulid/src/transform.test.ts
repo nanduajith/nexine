@@ -1,8 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 import { generateUlid } from './transform';
 describe('ulid', () => {
-  it('works', () => {
-    expect(generateUlid()).toHaveLength(26);
-  });
+  it('works', () => expect(generateUlid()).toHaveLength(26));
 });

@@ -22,6 +22,9 @@ const base64: ToolMeta = {
 
 describe('createToolRegistry', () => {
   it('registers and retrieves tools', () => {
+    const emptyRegistry = createToolRegistry<ToolMeta>();
+    expect(emptyRegistry.all()).toHaveLength(0);
+
     const registry = createToolRegistry<ToolMeta>([jwt, base64]);
     expect(registry.get('jwt')).toEqual(jwt);
     expect(registry.has('base64')).toBe(true);
@@ -34,8 +37,16 @@ describe('createToolRegistry', () => {
   });
 
   it('groups by category in display order (encoding before crypto)', () => {
-    const registry = createToolRegistry<ToolMeta>([jwt, base64]);
+    const base64Two: ToolMeta = { ...base64, id: 'base64-2', name: 'Base64-2' };
+    const registry = createToolRegistry<ToolMeta>([jwt, base64, base64Two]);
     const grouped = registry.byCategory();
     expect(grouped.map(([category]) => category)).toEqual(['encoding', 'crypto']);
+  });
+
+  it('supports searching tools', () => {
+    const registry = createToolRegistry<ToolMeta>([jwt, base64]);
+    const results = registry.search('token');
+    expect(results).toHaveLength(1);
+    expect(results[0]?.id).toBe('jwt');
   });
 });

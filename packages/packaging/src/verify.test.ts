@@ -127,6 +127,37 @@ describe('verifyPackage — tamper detection', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.reason).toBe('keyid-mismatch');
   });
+
+  it('rejects a validly signed package that has an invalid manifest', async () => {
+    const invalidManifest = null;
+    const { signingBytes } = await import('./sign');
+    const { sign } = await import('./crypto');
+    const env = {
+      format: 1,
+      algorithm: 'ed25519',
+      publicKey: signer.publicKey,
+      keyId: await keyIdFromPublicKey(signer.publicKey),
+      signedAt: 123,
+      manifest: invalidManifest,
+      code: CODE
+    } as const;
+    const sig = await sign(signingBytes(env as any), signer.privateKey);
+    const pkg: PluginPackage = {
+      format: 1,
+      manifest: invalidManifest,
+      code: CODE,
+      signature: {
+        algorithm: 'ed25519',
+        publicKey: signer.publicKey,
+        keyId: env.keyId,
+        signedAt: 123,
+        value: sig
+      }
+    };
+    const result = await verifyPackage(pkg);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.reason).toBe('invalid-manifest');
+  });
 });
 
 describe('verifyPackage — trust', () => {

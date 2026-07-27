@@ -8,7 +8,6 @@ describe('regex', () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value.map((m) => m.match)).toEqual(['1', '22', '333']);
   });
-
   it('captures groups', () => {
     const result = runRegex('(\\w)(\\d)', '', 'a1 b2');
     if (result.ok) {
@@ -16,16 +15,13 @@ describe('regex', () => {
       expect(result.value[1]?.groups).toEqual(['b', '2']);
     }
   });
-
   it('honors flags (case-insensitive)', () => {
     const result = runRegex('foo', 'i', 'FOO foo Foo');
     if (result.ok) expect(result.value).toHaveLength(3);
   });
-
   it('reports invalid patterns as errors', () => {
     expect(runRegex('(unclosed', '', 'x').ok).toBe(false);
   });
-
   it('returns no matches for an empty pattern', () => {
     expect(runRegex('', '', 'anything')).toEqual({ ok: true, value: [] });
   });
