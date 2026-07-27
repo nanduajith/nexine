@@ -85,7 +85,7 @@ Nexine isn't trying to be the only tool you use—it's trying to solve a specifi
 
 ## Web-Native Plugin Architecture
 
-Nexine uses a web-native architecture where plugins execute inside standard, secure browser `iframe`s rather than relying on a proprietary native SDK (like C# or C++). 
+Nexine uses a web-native architecture where plugins execute inside standard, secure browser `iframe`s rather than relying on a proprietary native SDK (like C# or C++).
 
 - **Zero Learning Curve:** Developers don't need to learn a proprietary "Nexine SDK". If they know how to build a basic webpage (using React, Vue, Svelte, or vanilla JS), they already know how to build a Nexine plugin.
 - **Massive Ecosystem:** Instantly inherit the entire NPM ecosystem. Need a YAML parser or Markdown renderer? Just `npm install` it and bundle it.
@@ -281,9 +281,6 @@ restrictive `Permissions-Policy`.
 - **Phase 3 — Ecosystem + Enterprise** ⏳ planned: community open registry → hosted marketplace →
   enterprise control plane (SSO, fleet policy distribution + drift detection, SIEM audit
   aggregation, supported air-gapped binary).
-
-The full product plan — strategy, open-core boundary, and stage gates — is in
-[`product-plan.md`](product-plan.md).
 
 ---
 
