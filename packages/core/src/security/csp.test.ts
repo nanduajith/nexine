@@ -41,4 +41,13 @@ describe('buildContentSecurityPolicy', () => {
     // The production policy is unaffected by asking for a dev policy.
     expect(buildContentSecurityPolicy()).toContain(NO_EGRESS_CONNECT_SRC);
   });
+
+  it('allows desktop iframe in frame-src when desktop option is true', () => {
+    const csp = buildContentSecurityPolicy({ desktop: true });
+    expect(csp).toContain('nexine-sandbox:');
+    expect(csp).toContain('http://nexine-sandbox.localhost');
+    expect(csp).toContain("frame-src 'self'");
+    // Still enforces no egress
+    expect(csp).toContain(NO_EGRESS_CONNECT_SRC);
+  });
 });

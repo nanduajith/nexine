@@ -103,4 +103,41 @@ describe('loadPackage', () => {
       expect(result.reason).toBe('bad-signature');
     }
   });
+
+  it("fails if policy blocks the plugin during loadPlugin", async () => {
+    let reads = 0;
+    const policy = {
+      get mode() { return "allow"; },
+      get blockedPlugins() {
+        reads++;
+        return reads > 1 ? ["dev.acme.csv"] : [];
+      }
+    } as any;
+    
+    const pkg = await makePackage();
+    // mock document so it does not fail on sandbox creation in loadPlugin
+    const iframeMock = { setAttribute: () => {}, addEventListener: () => {}, remove: () => {}, style: { cssText: "" }, src: "" };
+    (globalThis as any).document = { createElement: () => iframeMock };
+
+    const result = await loadPackage({ package: pkg, sandboxDocUrl: "/sandbox.html", policy });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.stage).toBe("policy");
+    }
+    delete (globalThis as any).document;
+  });
+
+  it("successfully loads a package", async () => {
+    const pkg = await makePackage();
+    const iframeMock = { setAttribute: () => {}, addEventListener: () => {}, remove: () => {}, style: { cssText: "" }, src: "" };
+    (globalThis as any).document = { createElement: () => iframeMock };
+
+    const result = await loadPackage({ package: pkg, sandboxDocUrl: "/sandbox.html", onFatal: () => {}, storageBackend: {} as any });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.signer.trusted).toBe(false);
+      expect(result.sandbox).toBeDefined();
+    }
+    delete (globalThis as any).document;
+  });
 });

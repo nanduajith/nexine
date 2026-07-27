@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { convertTimezone } from './transform';
 describe('timezone', () => {
-  it('works', () => {
-    expect(convertTimezone('2024-01-01T00:00:00Z', 'UTC')).toContain('January');
-  });
+  it('works', () => expect(convertTimezone('2024-01-01T00:00:00Z', 'UTC')).toContain('January'));
+  it('empty', () => expect(convertTimezone('', 'UTC')).toBe(''));
+  it('invalid', () => expect(() => convertTimezone('invalid', 'UTC')).toThrow('Invalid Date'));
 });

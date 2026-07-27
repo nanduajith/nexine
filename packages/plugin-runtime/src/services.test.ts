@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { createNamespacedStorage, type KeyValueBackend } from './services';
+import { createNamespacedStorage, type KeyValueBackend, createClipboardService, createHostServices } from './services';
 
 class MemoryBackend implements KeyValueBackend {
   private readonly map = new Map<string, string>();
@@ -77,5 +77,34 @@ describe('createNamespacedStorage', () => {
     const store = createNamespacedStorage('dev.a.tool', new MemoryBackend());
     const huge = 'x'.repeat(1_000_001);
     await expect(store.set('big', huge)).rejects.toThrow(/per-key limit/);
+  });
+});
+
+
+describe("createClipboardService", () => {
+  it("reads and writes to navigator.clipboard", async () => {
+    const readTextMock = vi.fn(async () => "clip text");
+    const writeTextMock = vi.fn(async () => {});
+    Object.defineProperty(globalThis, "navigator", { configurable: true, value: { 
+        clipboard: {
+          readText: readTextMock,
+          writeText: writeTextMock,
+        },
+       } });
+    const clipboard = createClipboardService();
+    expect(await clipboard.readText()).toBe("clip text");
+    await clipboard.writeText("new text");
+    expect(writeTextMock).toHaveBeenCalledWith("new text");
+  });
+});
+
+describe("createHostServices", () => {
+  it("creates services with default localStorage", () => {
+    Object.assign(globalThis, {
+      localStorage: new MemoryBackend(),
+    });
+    const s = createHostServices("dev.plugin");
+    expect(s.storage).toBeDefined();
+    expect(s.clipboard).toBeDefined();
   });
 });

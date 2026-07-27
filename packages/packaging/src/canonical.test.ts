@@ -23,11 +23,27 @@ describe('canonicalJson', () => {
     expect(() => canonicalJson({ n: Number.NaN })).toThrow(CanonicalizationError);
   });
 
-  it('rejects functions', () => {
+  it('rejects functions, undefined, symbol, bigint', () => {
     expect(() => canonicalJson({ f: () => 1 })).toThrow(CanonicalizationError);
+    expect(() => canonicalJson(undefined)).toThrow(CanonicalizationError);
+    expect(() => canonicalJson([undefined])).toThrow(CanonicalizationError);
+    expect(() => canonicalJson(Symbol('foo'))).toThrow(CanonicalizationError);
+    expect(() => canonicalJson(123n)).toThrow(CanonicalizationError);
   });
 
   it('escapes strings via JSON semantics', () => {
     expect(canonicalJson({ s: 'a"b\n' })).toBe('{"s":"a\\"b\\n"}');
+  });
+
+  it('handles null and booleans', () => {
+    expect(canonicalJson(null)).toBe('null');
+    expect(canonicalJson(true)).toBe('true');
+    expect(canonicalJson(false)).toBe('false');
+    expect(canonicalJson([null, true, false])).toBe('[null,true,false]');
+    expect(canonicalJson({ a: null, b: true, c: false })).toBe('{"a":null,"b":true,"c":false}');
+  });
+
+  it('handles valid numbers', () => {
+    expect(canonicalJson(42)).toBe('42');
   });
 });

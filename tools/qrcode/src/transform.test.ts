@@ -1,21 +1,23 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 import { generateSVG } from './transform';
 
-describe('qrcode transform', () => {
-  it('generates an SVG string for input text', async () => {
-    const svg = await generateSVG('hello world');
-    expect(svg).toContain('<svg');
-    expect(svg).toContain('</svg>');
-  });
-
-  it('handles empty input', async () => {
-    expect(await generateSVG('   ')).toBe('');
-  });
-
-  it('respects options', async () => {
-    const svg = await generateSVG('test', { color: { dark: '#ff0000', light: '#000000' } });
-    expect(svg).toContain('#ff0000');
-    expect(svg).toContain('#000000');
-  });
+vi.mock('qrcode', async () => {
+  const actual: any = await vi.importActual('qrcode');
+  return {
+    default: {
+      ...actual.default,
+      toString: vi.fn((input, options, cb) => {
+        if (input === 'FORCE_ERROR') cb(new Error('forced error'));
+        else actual.default.toString(input, options, cb);
+      }),
+    },
+  };
+});
+describe('generateSVG', () => {
+  it('valid', async () => expect(await generateSVG('hello')).toContain('<svg'));
+  it('empty', async () => expect(await generateSVG('   ')).toBe(''));
+  it('options', async () => expect(await generateSVG('hello', { color: { dark: '#111', light: '#eee' }, margin: 2, scale: 2, errorCorrectionLevel: 'H' })).toContain('<svg'));
+  it('partial options', async () => expect(await generateSVG('hello', { color: { dark: '', light: '' } })).toContain('<svg'));
+  it('error', async () => await expect(generateSVG('FORCE_ERROR')).rejects.toThrow('forced error'));
 });

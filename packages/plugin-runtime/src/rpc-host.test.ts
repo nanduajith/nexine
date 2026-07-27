@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 import type { Permission } from '@nexine/sdk';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -73,5 +74,81 @@ describe('handleRequest permission gating', () => {
     );
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe('internal');
+  });
+});
+
+import { attachRpcHost } from "./rpc-host";
+
+describe("attachRpcHost", () => {
+  it("handles unsupported methods in handleRequest", async () => {
+    const res = await handleRequest({ method: "unknown.method" } as any, [], services());
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("unsupported");
+  });
+
+  it("handles nx:ready and nx:request messages", async () => {
+    const { port1, port2 } = new MessageChannel();
+    const handle = attachRpcHost({
+      port: port1,
+      manifest: { id: "dev.test", version: "1.0", entry: "a" } as any,
+      granted: [{ id: "storage" }],
+      pluginSource: "code",
+      services: services(),
+    });
+    
+    port2.postMessage({ type: "nx:ready" });
+    const initEvent = await new Promise<any>((resolve) => {
+      port2.onmessage = resolve;
+    });
+    expect(initEvent.data.type).toBe("nx:init");
+
+    port2.postMessage({ type: "nx:request", id: 1, request: { method: "storage.get", key: "k" } });
+    const responseEvent = await new Promise<any>((resolve) => {
+      port2.onmessage = resolve;
+    });
+    expect(responseEvent.data.type).toBe("nx:response");
+    expect(responseEvent.data.result.ok).toBe(true);
+
+    handle.dispose();
+  });
+
+  it("handles nx:fatal messages", async () => {
+    const { port1, port2 } = new MessageChannel();
+    let fatalMessage = "";
+    const handle = attachRpcHost({
+      port: port1,
+      manifest: {} as any,
+      granted: [{ id: "storage" }],
+      pluginSource: "code",
+      services: services(),
+      onFatal: (m) => { fatalMessage = m; },
+    });
+    port2.postMessage({ type: "nx:fatal", message: "fatal error" });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(fatalMessage).toBe("fatal error");
+    handle.dispose();
+  });
+});
+
+describe("rpc-host storage methods", () => {
+  it("handles storage.set and invalid arguments", async () => {
+    const res = await handleRequest({ method: "storage.set", key: "k", value: 123 as any }, [{ id: "storage" }], services());
+    expect(res.ok).toBe(false);
+    
+    const res2 = await handleRequest({ method: "storage.set", key: "k", value: "v" }, [{ id: "storage" }], services());
+    expect(res2.ok).toBe(true);
+  });
+
+  it("handles storage.remove and invalid arguments", async () => {
+    const res = await handleRequest({ method: "storage.remove", key: 123 as any }, [{ id: "storage" }], services());
+    expect(res.ok).toBe(false);
+    
+    const res2 = await handleRequest({ method: "storage.remove", key: "k" }, [{ id: "storage" }], services());
+    expect(res2.ok).toBe(true);
+  });
+
+  it("handles storage.keys", async () => {
+    const res = await handleRequest({ method: "storage.keys" }, [{ id: "storage" }], services());
+    expect(res.ok).toBe(true);
   });
 });
