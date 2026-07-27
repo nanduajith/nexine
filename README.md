@@ -47,24 +47,39 @@ Nexine ships in two forms. The **web version** is a lightweight, instant-access 
 
 ## 💡 How Nexine Compares
 
-There are several great developer utility suites available today. Nexine is designed specifically around a **two-tier execution model**: maximum accessibility on the web with zero sandbox overhead, combined with strict enterprise governance on the desktop.
+Almost every developer utility suite today claims to be "client-side only". However, the moment you need to extend those tools with custom logic, that privacy guarantee shatters.
 
-| Feature / Philosophy  | Nexine                                 | IT-Tools   | DevToys                      |
-| :-------------------- | :------------------------------------- | :--------- | :--------------------------- |
-| **Primary Target**    | Web PWA + Tauri Desktop                | Web PWA    | Windows / Mac / Linux Native |
-| **First-Party Tools** | In-process (Zero iframe overhead)      | In-process | Native / In-process          |
-| **3rd-Party Plugins** | Yes (Desktop-only, strict CSP sandbox) | No         | Yes (NuGet / C# / JS)        |
-| **Security Model**    | Policy-driven per-plugin CSP           | N/A        | Local execution              |
+Nexine isn't trying to be the only tool you use—it's trying to solve a specific enterprise problem: **maintaining a strict "no-egress" privacy guarantee even when executing untrusted third-party plugins.** Built with a security-first architecture, Nexine provides instant accessibility on the web and governed extensibility on the desktop.
 
-### Choose Nexine if:
+| Feature / Philosophy       | Nexine                                                                       | IT-Tools                                     | DevToys                          | CyberChef                                       |
+| :------------------------- | :--------------------------------------------------------------------------- | :------------------------------------------- | :------------------------------- | :---------------------------------------------- |
+| **Architecture**           | Web PWA + Tauri Desktop                                                      | Web PWA                                      | Native (.NET / Blazor)           | Web PWA                                         |
+| **Data Privacy Guarantee** | **100% Local Processing**                                                    | 100% Local Processing                        | 100% Local Processing            | 100% Local Processing                           |
+| **Plugin Extensibility**   | **Yes** (Sandboxed `.nexpkg` plugins)                                        | No (Requires forking)                        | **Yes** (NuGet / C#)             | No (Requires forking)                           |
+| **Plugin Security Model**  | **Strict Governance** (Per-plugin CSP, zero-eval, explicit egress whitelist) | N/A                                          | **Full OS Access** (Local Trust) | N/A                                             |
+| **Desktop / Native Mode**  | Yes                                                                          | No                                           | Yes                              | No                                              |
+| **Primary Target**         | Enterprise teams requiring secure, governed extensibility                    | Individual developers needing standard tools | Native desktop power users       | Cybersecurity analysts / complex data pipelines |
 
-- You want a zero-latency, offline-capable PWA for standard daily tools (JWT, JSON, Base64).
-- You need a desktop environment where team members can run custom third-party plugins safely under administrative security policies (scoped network egress, zero-eval).
+#### 🆚 Nexine vs. IT-Tools
 
-### Choose alternative tools if:
+[IT-Tools](https://it-tools.tech/) is a phenomenal, open-source web monolith packed with over 80 utilities out of the box. Both IT-Tools and Nexine guarantee that your data never leaves your browser.
 
-- **IT-Tools:** You want a massive, out-of-the-box library of 100+ web tools and have no need for custom plugin extensibility.
-- **CyberChef:** You need complex, multi-stage data transformations and deep binary analysis pipelines.
+- **Choose IT-Tools if** you are an individual developer who wants a massive, ready-to-use library of standard web tools and have no need to write custom internal utilities.
+- **Choose Nexine if** you are on a team that needs to build proprietary, internal utilities (e.g., a custom auth token generator for your staging environment) and distribute them securely without forking an entire monolith.
+
+#### 🆚 Nexine vs. DevToys
+
+[DevToys](https://devtoys.app/) is a heavyweight "Swiss Army knife" built natively on .NET, offering extensions via C# NuGet packages.
+
+- **Choose DevToys if** you prefer a deeply integrated native Windows/Mac application and are comfortable running third-party C# plugins with full local OS trust (meaning plugins can silently read your filesystem or make network requests).
+- **Choose Nexine if** you want the security-first peace of mind. Nexine's desktop environment executes all third-party plugins inside a highly restricted, zero-eval sandbox. A plugin cannot exfiltrate your clipboard data to the internet unless you, the administrator, explicitly write an egress policy allowing it.
+
+#### 🆚 Nexine vs. CyberChef
+
+[CyberChef](https://gchq.github.io/CyberChef/) by GCHQ is the undisputed king of data manipulation, built around a multi-stage "recipe" pipeline.
+
+- **Choose CyberChef if** you are performing complex, multi-step data transformations, malware analysis, chained encryptions, or deep packet decoding.
+- **Choose Nexine if** your daily tasks are standard, one-off developer operations (like formatting JSON or decoding a JWT) where a heavy pipeline UI introduces unnecessary friction.
 
 ---
 

@@ -209,7 +209,9 @@
         <section id="comparison" class="reveal">
           <h2>How Nexine Compares</h2>
           <p class="sub">
-            Nexine is designed specifically around a <b>two-tier execution model</b>: maximum accessibility on the web with zero sandbox overhead, combined with strict enterprise governance on the desktop.
+            Almost every developer utility suite today claims to be "client-side only". However, the moment you need to extend those tools with custom logic, that privacy guarantee shatters. 
+            <br/><br/>
+            Nexine isn't trying to be the only tool you use—it's trying to solve a specific enterprise problem: <b>maintaining a strict "no-egress" privacy guarantee even when executing untrusted third-party plugins.</b> Built with a security-first architecture, Nexine provides instant accessibility on the web and governed extensibility on the desktop.
           </p>
           <div class="table-wrap">
             <table class="comparison-table">
@@ -219,69 +221,116 @@
                   <th>Nexine</th>
                   <th>IT-Tools</th>
                   <th>DevToys</th>
+                  <th>CyberChef</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>Primary Target</strong></td>
+                  <td><strong>Architecture</strong></td>
                   <td>Web PWA + Tauri Desktop</td>
                   <td>Web PWA</td>
-                  <td>Windows / Mac / Linux Native</td>
+                  <td>Native (.NET / Blazor)</td>
+                  <td>Web PWA</td>
                 </tr>
                 <tr>
-                  <td><strong>First-Party Tools</strong></td>
-                  <td>In-process (Zero iframe overhead)</td>
-                  <td>In-process</td>
-                  <td>Native / In-process</td>
+                  <td><strong>Data Privacy Guarantee</strong></td>
+                  <td><strong>100% Local Processing</strong></td>
+                  <td>100% Local Processing</td>
+                  <td>100% Local Processing</td>
+                  <td>100% Local Processing</td>
                 </tr>
                 <tr>
-                  <td><strong>3rd-Party Plugins</strong></td>
-                  <td>Yes (Desktop-only, strict CSP sandbox)</td>
-                  <td>No</td>
-                  <td>Yes (NuGet / C# / JS)</td>
+                  <td><strong>Plugin Extensibility</strong></td>
+                  <td><strong>Yes</strong> (Sandboxed .nexpkg)</td>
+                  <td>No (Requires forking)</td>
+                  <td><strong>Yes</strong> (NuGet / C#)</td>
+                  <td>No (Requires forking)</td>
                 </tr>
                 <tr>
-                  <td><strong>Security Model</strong></td>
-                  <td>Policy-driven per-plugin CSP</td>
+                  <td><strong>Plugin Security Model</strong></td>
+                  <td><strong>Strict Governance</strong> (Per-plugin CSP, zero-eval)</td>
                   <td>N/A</td>
-                  <td>Local execution</td>
+                  <td><strong>Full OS Access</strong> (Local Trust)</td>
+                  <td>N/A</td>
+                </tr>
+                <tr>
+                  <td><strong>Desktop / Native Mode</strong></td>
+                  <td>Yes</td>
+                  <td>No</td>
+                  <td>Yes</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <td><strong>Primary Target</strong></td>
+                  <td>Enterprise teams requiring secure, governed extensibility</td>
+                  <td>Individual developers needing standard tools</td>
+                  <td>Native desktop power users</td>
+                  <td>Cybersecurity analysts / complex data pipelines</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <div class="grid cols-2" style="margin-top: 32px">
+          <div class="grid cols-3" style="margin-top: 32px">
             <div class="card">
-              <h3>Choose Nexine if:</h3>
-              <ul class="checklist" style="margin-top: 12px">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <h3>Nexine vs. IT-Tools</h3>
+              <p style="margin-top: 12px; font-size: 0.9rem; line-height: 1.5; color: var(--text-2);">
+                IT-Tools is a phenomenal, open-source web monolith packed with over 80 utilities. Both IT-Tools and Nexine guarantee your data never leaves the browser.
+              </p>
+              <ul class="checklist" style="margin-top: 16px">
+                <li style="align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 3px;">
                     <path d="M20 6L9 17l-5-5"></path>
                   </svg>
-                  <span>You want a zero-latency, offline-capable PWA for standard daily tools (JWT, JSON, Base64).</span>
+                  <span><b>Choose IT-Tools if:</b> You are an individual developer who wants a massive, ready-to-use library of standard web tools and have no need to write custom internal utilities.</span>
                 </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <li style="align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 3px; color: var(--accent);">
                     <path d="M20 6L9 17l-5-5"></path>
                   </svg>
-                  <span>You need a desktop environment where team members can run custom third-party plugins safely under administrative security policies (scoped network egress, zero-eval).</span>
+                  <span><b>Choose Nexine if:</b> You are on a team that needs to securely build and distribute proprietary internal tools (e.g., custom auth token generators) without forking a monolith.</span>
                 </li>
               </ul>
             </div>
+            
             <div class="card">
-              <h3>Choose alternative tools if:</h3>
-              <ul class="checklist" style="margin-top: 12px">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <h3>Nexine vs. DevToys</h3>
+              <p style="margin-top: 12px; font-size: 0.9rem; line-height: 1.5; color: var(--text-2);">
+                DevToys is a heavyweight "Swiss Army knife" built natively on .NET, offering deep OS integration and C# NuGet extensions.
+              </p>
+              <ul class="checklist" style="margin-top: 16px">
+                <li style="align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 3px;">
                     <path d="M20 6L9 17l-5-5"></path>
                   </svg>
-                  <span><b>IT-Tools:</b> You want a massive, out-of-the-box library of 100+ web tools and have no need for custom plugin extensibility.</span>
+                  <span><b>Choose DevToys if:</b> You prefer a deeply integrated native application and are comfortable running third-party plugins with full local OS trust (can silently read FS or network).</span>
                 </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <li style="align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 3px; color: var(--accent);">
                     <path d="M20 6L9 17l-5-5"></path>
                   </svg>
-                  <span><b>CyberChef:</b> You need complex, multi-stage data transformations and deep binary analysis pipelines.</span>
+                  <span><b>Choose Nexine if:</b> You want security-first peace of mind. Nexine executes third-party plugins in a zero-eval sandbox—plugins cannot exfiltrate clipboard data without explicit egress policies.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3>Nexine vs. CyberChef</h3>
+              <p style="margin-top: 12px; font-size: 0.9rem; line-height: 1.5; color: var(--text-2);">
+                CyberChef (by GCHQ) is the undisputed king of data manipulation, built around a powerful multi-stage "recipe" pipeline.
+              </p>
+              <ul class="checklist" style="margin-top: 16px">
+                <li style="align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 3px;">
+                    <path d="M20 6L9 17l-5-5"></path>
+                  </svg>
+                  <span><b>Choose CyberChef if:</b> You are performing complex, multi-step data transformations, malware analysis, chained encryptions, or deep packet decoding.</span>
+                </li>
+                <li style="align-items: flex-start;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top: 3px; color: var(--accent);">
+                    <path d="M20 6L9 17l-5-5"></path>
+                  </svg>
+                  <span><b>Choose Nexine if:</b> Your daily tasks are standard, one-off developer operations (like formatting JSON or decoding a JWT) where a heavy pipeline UI introduces unnecessary friction.</span>
                 </li>
               </ul>
             </div>
