@@ -126,6 +126,7 @@ export function runNexineGuest(): void {
   // (sandbox="allow-scripts"), so its origin is the string "null" and the parent's
   // origin may vary (custom protocol, localhost, production). The private
   // MessageChannel is the trusted link, not the origin string.
+  // nosemgrep: javascript.browser.security.insufficient-postmessage-origin-validation.insufficient-postmessage-origin-validation
   window.addEventListener('message', function onPort(event: MessageEvent) {
     if (event.source !== window.parent) return;
     const data = event.data as { type?: string } | null;
