@@ -26,6 +26,7 @@
           Nexine <span class="tag">NO&nbsp;EGRESS</span>
         </a>
         <nav class="nav-links" id="navLinks">
+          <a href="#comparison">Comparison</a>
           <a href="#tools">Tools</a>
           <a href="#security">Security</a>
           <a href="#plugins">Plugins</a>
@@ -81,6 +82,7 @@
       <aside class="side" id="sideNav">
         <h5>Guide</h5>
         <a href="#overview">Overview</a>
+        <a href="#comparison">Comparison</a>
         <a href="#features">Why Nexine</a>
         <a href="#gallery">Screenshots</a>
         <a href="#tools">Tool catalog</a>
@@ -200,6 +202,89 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <!-- ================= COMPARISON ================= -->
+        <section id="comparison" class="reveal">
+          <h2>How Nexine Compares</h2>
+          <p class="sub">
+            Nexine is designed specifically around a <b>two-tier execution model</b>: maximum accessibility on the web with zero sandbox overhead, combined with strict enterprise governance on the desktop.
+          </p>
+          <div class="table-wrap">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Feature / Philosophy</th>
+                  <th>Nexine</th>
+                  <th>IT-Tools</th>
+                  <th>DevToys</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Primary Target</strong></td>
+                  <td>Web PWA + Tauri Desktop</td>
+                  <td>Web PWA</td>
+                  <td>Windows / Mac / Linux Native</td>
+                </tr>
+                <tr>
+                  <td><strong>First-Party Tools</strong></td>
+                  <td>In-process (Zero iframe overhead)</td>
+                  <td>In-process</td>
+                  <td>Native / In-process</td>
+                </tr>
+                <tr>
+                  <td><strong>3rd-Party Plugins</strong></td>
+                  <td>Yes (Desktop-only, strict CSP sandbox)</td>
+                  <td>No</td>
+                  <td>Yes (NuGet / C# / JS)</td>
+                </tr>
+                <tr>
+                  <td><strong>Security Model</strong></td>
+                  <td>Policy-driven per-plugin CSP</td>
+                  <td>N/A</td>
+                  <td>Local execution</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="grid cols-2" style="margin-top: 32px">
+            <div class="card">
+              <h3>Choose Nexine if:</h3>
+              <ul class="checklist" style="margin-top: 12px">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"></path>
+                  </svg>
+                  <span>You want a zero-latency, offline-capable PWA for standard daily tools (JWT, JSON, Base64).</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"></path>
+                  </svg>
+                  <span>You need a desktop environment where team members can run custom third-party plugins safely under administrative security policies (scoped network egress, zero-eval).</span>
+                </li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Choose alternative tools if:</h3>
+              <ul class="checklist" style="margin-top: 12px">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"></path>
+                  </svg>
+                  <span><b>IT-Tools:</b> You want a massive, out-of-the-box library of 100+ web tools and have no need for custom plugin extensibility.</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"></path>
+                  </svg>
+                  <span><b>CyberChef:</b> You need complex, multi-stage data transformations and deep binary analysis pipelines.</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </section>
 
