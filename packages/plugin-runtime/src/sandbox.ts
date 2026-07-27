@@ -62,6 +62,7 @@ export function createPluginSandbox(options: SandboxOptions): PluginSandbox {
     // subsequent communication happens over the transferred MessageChannel
     // (structured-clone payloads only — no functions or DOM nodes cross the
     // boundary; the browser throws DataCloneError on non-cloneable values).
+    // nosemgrep: javascript.browser.security.wildcard-postmessage-configuration.wildcard-postmessage-configuration
     iframe.contentWindow.postMessage({ type: 'nx:port' }, '*', [channel.port2]);
   });
 

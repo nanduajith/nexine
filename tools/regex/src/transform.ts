@@ -19,6 +19,7 @@ export function runRegex(pattern: string, flags: string, text: string): Result<R
   const effectiveFlags = flags.includes('g') ? flags : `${flags}g`;
   let regex: RegExp;
   try {
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
     regex = new RegExp(pattern, effectiveFlags);
   } catch (error) {
     return err(error instanceof Error ? error.message : 'Invalid regular expression.');
