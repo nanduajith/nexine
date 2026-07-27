@@ -1,3 +1,6 @@
+# nosemgrep: package_managers.pnpm.pnpm-block-exotic-sub-dependencies.pnpm-block-exotic-sub-dependencies
+# nosemgrep: package_managers.pnpm.pnpm-missing-minimum-release-age.pnpm-minimum-release-age
+# nosemgrep: package_managers.pnpm.pnpm-trust-policy.pnpm-trust-policy
 packages:
   - 'packages/*'
   - 'tools/*'
