@@ -692,6 +692,24 @@ pnpm nexine verify dev.nexine.cron-explainer-1.0.0.nexpkg <span class="k">--trus
           </div>
         </section>
 
+        <!-- ================= WEB-NATIVE ARCHITECTURE ================= -->
+        <section id="web-native-architecture" class="reveal">
+          <h2>Web-Native Plugin Architecture</h2>
+          <p class="sub">
+            Plugins execute inside standard, secure browser iframes rather than relying on a proprietary native SDK (like C# or C++).
+          </p>
+          <div class="grid cols-2">
+            <div class="card" style="grid-column: span 2;">
+              <p>
+                <b>Zero Learning Curve:</b> If you can build a webpage (using React, Vue, Svelte, or vanilla JS), you can build a Nexine plugin.<br><br>
+                <b>Massive Ecosystem:</b> Inherit the entire NPM ecosystem. Need a YAML parser? Just <code>npm install</code> it.<br><br>
+                <b>WebAssembly (WASM):</b> For intense forensic analysis, write core logic in Rust, Go, Python, or C++ and compile it to WASM.<br><br>
+                <b>Battle-Tested Security:</b> Nexine leverages the exact same V8/WebKit sandboxing engines that protect users from malicious websites.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <!-- ================= GOVERNANCE ================= -->
         <section id="governance" class="reveal">
           <h2>Governance, on device (Desktop)</h2>

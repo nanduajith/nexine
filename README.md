@@ -83,6 +83,18 @@ Nexine isn't trying to be the only tool you use—it's trying to solve a specifi
 
 ---
 
+## Web-Native Plugin Architecture
+
+Nexine uses a web-native architecture where plugins execute inside standard, secure browser `iframe`s rather than relying on a proprietary native SDK (like C# or C++). 
+
+- **Zero Learning Curve:** Developers don't need to learn a proprietary "Nexine SDK". If they know how to build a basic webpage (using React, Vue, Svelte, or vanilla JS), they already know how to build a Nexine plugin.
+- **Massive Ecosystem:** Instantly inherit the entire NPM ecosystem. Need a YAML parser or Markdown renderer? Just `npm install` it and bundle it.
+- **WebAssembly (WASM):** For heavy data processing, custom cryptographic hashing, or intense forensic analysis, you can write the core logic in Rust, Go, Python, or C++ and compile it to WebAssembly. The browser engine runs the WASM bytecode natively.
+- **Battle-Tested Security:** By running plugins in an `iframe`, Nexine leverages the exact same V8/WebKit sandboxing engines that Google and Apple spend billions securing.
+- **Portability:** Code written for a Nexine plugin can easily be reused on a public website.
+
+---
+
 ## The guarantee: no egress
 
 Everything runs **100% client-side**. The production build ships a strict Content-Security-Policy
