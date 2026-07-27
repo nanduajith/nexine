@@ -4,3 +4,10 @@ packages:
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+
+auditConfig:
+  ignoreGhsas:
+    - GHSA-mh99-v99m-4gvg
+
+overrides:
+  underscore: ">=1.13.8"

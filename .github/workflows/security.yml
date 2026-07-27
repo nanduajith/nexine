@@ -1,0 +1,114 @@
+name: Security Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Grant permissions required for uploading SARIF results to the GitHub Security tab
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  node-sca:
+    name: Node.js SCA (pnpm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 11.17.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify patched brace-expansion
+        # Explanation: We ignore GHSA-mh99-v99m-4gvg in pnpm audit below because it incorrectly
+        # flags all versions < 5.0.8 as vulnerable, even though 1.1.11+ is patched.
+        # This manual check ensures we don't accidentally regress to <= 1.1.10.
+        # TODO: Remove this check when we drop minimatch@3 and remove the --ignore flag.
+        run: |
+          if pnpm why brace-expansion | grep -qE "brace-expansion@(1\.0\.[0-9]+|1\.1\.[0-9]$|1\.1\.10$)"; then
+            echo "::error::Vulnerable brace-expansion version found! (<= 1.1.10)"
+            exit 1
+          fi
+          echo "Verified brace-expansion is patched."
+      - name: Run pnpm audit
+        run: pnpm audit --audit-level high --ignore GHSA-mh99-v99m-4gvg
+
+  rust-sca:
+    name: Rust SCA (cargo audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@f1b61bf3a1373bccc1ebdc11506122709bd40dee # cargo-audit
+      - name: Run cargo audit
+        working-directory: src-tauri
+        run: cargo audit
+
+  codeql:
+    name: GitHub CodeQL (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@3b0bd1d116c0bde30213346b22d4f634d96a2fb0 # v3
+        with:
+          languages: javascript-typescript
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@3b0bd1d116c0bde30213346b22d4f634d96a2fb0 # v3
+        with:
+          category: "/language:javascript-typescript"
+
+  gitleaks:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0 # Required for historical scanning
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  semgrep:
+    name: Advanced SAST (Semgrep)
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - name: Run Semgrep
+        run: |
+          pip install semgrep
+          semgrep ci
+        env:
+          SEMGREP_RULES: p/default
+
+  trivy:
+    name: Infra & Container Scanning (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@c07df6fec6fa692e6fd1200d50aaa1fdd66f03c8 # master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@3b0bd1d116c0bde30213346b22d4f634d96a2fb0 # v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
