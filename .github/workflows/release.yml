@@ -204,10 +204,29 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: xvfb-run --auto-servernum cargo test --manifest-path src-tauri/Cargo.toml
 
+      - name: Setup Windows Code Signing
+        if: matrix.platform == 'windows-latest' && secrets.WINDOWS_CERTIFICATE != ''
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String($env:WINDOWS_CERTIFICATE)
+          $certPath = Join-Path -Path $env:RUNNER_TEMP -ChildPath "cert.pfx"
+          [IO.File]::WriteAllBytes($certPath, $pfx_cert_byte)
+          certutil -f -p $env:WINDOWS_CERTIFICATE_PASSWORD -importpfx $certPath
+          $thumbprint = (Get-PfxCertificate -FilePath $certPath).Thumbprint
+          (Get-Content src-tauri/tauri.conf.json) -replace 'INJECTED_BY_CI', $thumbprint | Set-Content src-tauri/tauri.conf.json
+
       - name: Build desktop app and upload to the release
         uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           tagName: v${{ needs.detect.outputs.version }}
           releaseName: Nexine v${{ needs.detect.outputs.version }}
